@@ -17,12 +17,6 @@ export default async function handler(
   // OpenAI recommends replacing newlines with spaces for best results
   const sanitizedQuestion = question.trim().replaceAll('\n', ' ');
 
-  /* create vectorstore*/
-  const vectorStore = await SupabaseVectorStore.fromExistingIndex(
-    supabaseClient,
-    new OpenAIEmbeddings(),
-  );
-
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache, no-transform',
@@ -37,18 +31,18 @@ export default async function handler(
 
   const model = openai;
   // create the chain
-  const chain = makeChain(vectorStore, (token: string) => {
-    sendData(JSON.stringify({ data: token }));
-  });
+  const chain = makeChain();
 
   try {
-    //Ask a question
     const response = await chain.call({
       question: sanitizedQuestion,
-      chat_history: history || [],
     });
-
     console.log('response', response);
+    // if ("sql" in response.lower()){
+    //   result = supabaseClient.rpc(response)    // array of json
+    //   console.log("result", result)
+    //   return { "data": result }
+    // }
   } catch (error) {
     console.log('error', error);
   } finally {

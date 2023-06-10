@@ -1,0 +1,28 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL")
+}
+
+enum State {
+  NEWYORK
+  NEWJERSEY
+  CALIFORNIA
+  WASHINGTON
+}
+
+model WarnNotice {
+  id            Int         @id @default(autoincrement())
+  createdAt     DateTime    @default(now())
+  noticeDate    DateTime 
+  layoffDate    DateTime?
+  numAffected   Int
+  state         State
+}

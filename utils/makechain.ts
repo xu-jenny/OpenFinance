@@ -25,7 +25,7 @@ Question: {question}
 Answer in Markdown:`,
 );
 
-export const makeChain = (
+export const makeChainWithVectorStore = (
   vectorstore: SupabaseVectorStore,
   onTokenStream?: (token: string) => void,
 ) => {
@@ -50,3 +50,14 @@ export const makeChain = (
     questionGeneratorChain: questionGenerator,
   });
 };
+
+export const makeChain = () => {
+  const docChain = loadQAChain(
+    new OpenAI({
+      temperature: 0,
+    }),
+    { prompt: QA_PROMPT },
+  );
+
+  return docChain
+}
