@@ -7,12 +7,14 @@ import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import LoadingDots from '@/components/ui/LoadingDots';
 import { Table } from '@/components/ui/Table';
+import { format } from 'sql-formatter';
 
 export default function Home() {
   const [query, setQuery] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [data, setData] = useState<any[]>([]);
-  const [aggregatedData, setAggregatedData] = useState<any[]>(['a']);
+  const [aggregatedData, setAggregatedData] = useState<any[]>([]);
+  const [sql, setSql] = useState<string>('');
   const [messageState, setMessageState] = useState<{
     messages: Message[];
     pending?: string;
@@ -132,6 +134,11 @@ export default function Home() {
         console.error(error);
       });
     console.log(response);
+    console.log(response['data']);
+    setAggregatedData(response['data']);
+    setSql(response['sql']);
+    // console.log(aggregatedData);
+    // console.log(sql);
   }
   //prevent empty submissions
   const handleEnter = (e: any) => {
@@ -189,14 +196,22 @@ export default function Home() {
               {aggregatedData.length > 0 && (
                 <div className="mt-3">
                   <p>Aggregated Data</p>
-                  {/* <Table /> */}
-                  <hr className="my-3 h-0.5 border-t-0 bg-neutral-100 opacity-500 dark:opacity-50" />
-                  <h2>Source SQL:</h2>
-                  <div className="bg-gray-100 p-4 rounded-md">
-                    <pre>
-                      <code>Your code here</code>
-                    </pre>
-                  </div>
+                  <p>{JSON.stringify(aggregatedData)}</p>
+                  {sql.length > 0 && (
+                    <>
+                      <hr className="my-3 h-0.5 border-t-0 bg-neutral-100 opacity-500 dark:opacity-50" />
+                      <h2>Source SQL:</h2>
+                      <div className="bg-gray-100 p-4 rounded-md">
+                        <pre>
+                          <code>
+                            {format(sql, {
+                              language: 'postgresql',
+                            })}
+                          </code>
+                        </pre>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
