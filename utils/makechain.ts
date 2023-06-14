@@ -25,6 +25,21 @@ Question: {question}
 Answer in Markdown:`,
 );
 
+const SQL_PROMPT = PromptTemplate.fromTemplate(`
+Generate a single SQL query that fulfills this request: {request}
+
+These are the table schemas:
+
+WarnNotice:
+companyName (String): name of the company that posted the notice
+noticeDate (DateTime): the date the notice was posted
+layoffDate (DateTime): the date the layoff will take effect
+numAffected (Int): the number of employees affected
+state (String): the state in which the layoff will happen. State is represented by its 2 letter abbreviation, such as NY, NJ, CA, etc.)
+
+Only output the SQL query. Make sure the SQL query is correct before outputting it. Do not output any other words.
+`);
+
 export const makeChainWithVectorStore = (
   vectorstore: SupabaseVectorStore,
   onTokenStream?: (token: string) => void,
@@ -56,7 +71,7 @@ export const makeChain = () => {
     new OpenAI({
       temperature: 0,
     }),
-    { prompt: QA_PROMPT },
+    { prompt: SQL_PROMPT },
   );
 
   return docChain

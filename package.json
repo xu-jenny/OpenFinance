@@ -15,7 +15,7 @@
     "scrape-embed": "tsx -r dotenv/config scripts/scrape-embed.ts"
   },
   "prisma": {
-    "seed": "pnpx -y ts-node --transpile-only prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@microsoft/fetch-event-source": "^2.0.1",
@@ -24,8 +24,11 @@
     "@tanstack/react-table": "^8.9.1",
     "cheerio": "1.0.0-rc.12",
     "clsx": "^1.2.1",
+    "csv": "^6.3.1",
+    "csv-parse": "^5.4.0",
     "dotenv": "^16.0.3",
     "langchain": "^0.0.26",
+    "moment": "^2.29.4",
     "next": "13.2.3",
     "prisma": "^4.15.0",
     "react": "18.2.0",
@@ -46,7 +49,7 @@
     "tailwindcss": "^3.2.7",
     "ts-node": "^10.9.1",
     "tsx": "^3.12.3",
-    "typescript": "^4.9.5"
+    "typescript": "^5.1.3"
   },
   "keywords": [
     "starter",

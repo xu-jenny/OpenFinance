@@ -11,6 +11,7 @@ import { Table } from '@/components/ui/Table';
 export default function Home() {
   const [query, setQuery] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [data, setData] = useState<any[]>([]);
   const [aggregatedData, setAggregatedData] = useState<any[]>(['a']);
   const [messageState, setMessageState] = useState<{
     messages: Message[];
@@ -26,6 +27,15 @@ export default function Home() {
     history: [],
   });
 
+  useEffect(() => {
+    fetch('/api/warnNotices')
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        setData(data);
+      });
+  }, []);
+
   const { messages, pending, history } = messageState;
 
   const messageListRef = useRef<HTMLDivElement>(null);
@@ -35,7 +45,6 @@ export default function Home() {
     textAreaRef.current?.focus();
   }, []);
 
-  //handle form submission
   async function handleSubmit(e: any) {
     e.preventDefault();
 
@@ -63,7 +72,7 @@ export default function Home() {
     setMessageState((state) => ({ ...state, pending: '' }));
 
     const ctrl = new AbortController();
-
+    console.log(question, history);
     try {
       fetchEventSource('/api/chat', {
         method: 'POST',
@@ -105,10 +114,30 @@ export default function Home() {
     }
   }
 
+  async function handleChat() {
+    const question = query.trim();
+    console.log(question);
+    let response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        question,
+        history,
+      }),
+    })
+      .then((response) => response.json())
+      .catch((error) => {
+        console.error(error);
+      });
+    console.log(response);
+  }
   //prevent empty submissions
   const handleEnter = (e: any) => {
     if (e.key === 'Enter' && query) {
-      handleSubmit(e);
+      // handleSubmit(e);
+      handleChat();
     } else if (e.key == 'Enter') {
       e.preventDefault();
     }
@@ -126,11 +155,11 @@ export default function Home() {
       <Layout>
         <div className="grid grid-flow-col gap-3 p-3 m-3">
           <div className="bg-blue-100 col-span-6 p-3">
-            <Table />
+            {data != null && <Table data={data} />}
           </div>
           <div className="col-span-6">
             <div className="p-3 flex flex-col">
-              <div className='flex flex-row gap-2'>
+              <div className="flex flex-row gap-2">
                 <textarea
                   disabled={loading}
                   onKeyDown={handleEnter}
@@ -158,9 +187,9 @@ export default function Home() {
                 </button>
               </div>
               {aggregatedData.length > 0 && (
-                <div className='mt-3'>
+                <div className="mt-3">
                   <p>Aggregated Data</p>
-                  <Table />
+                  {/* <Table /> */}
                   <hr className="my-3 h-0.5 border-t-0 bg-neutral-100 opacity-500 dark:opacity-50" />
                   <h2>Source SQL:</h2>
                   <div className="bg-gray-100 p-4 rounded-md">
@@ -173,107 +202,17 @@ export default function Home() {
             </div>
           </div>
         </div>
-        {/* <div className="mt-10">
-          <Table />
-        </div> */}
-        {/* <div className="mx-auto flex flex-col gap-4">
-          <h1 className="text-2xl font-bold leading-[1.1] tracking-tighter text-center">
-            Thomas Frank Notion Guide ChatBot
-          </h1>
-          <main className={styles.main}>
-            <div className={styles.cloud}>
-              <div ref={messageListRef} className={styles.messagelist}>
-                {chatMessages.map((message, index) => {
-                  let icon;
-                  let className;
-                  if (message.type === 'apiMessage') {
-                    icon = (
-                      <Image
-                        src="/Thomas-Frank-Avatar.jpg"
-                        alt="AI"
-                        width="40"
-                        height="40"
-                        className={styles.boticon}
-                        priority
-                      />
-                    );
-                    className = styles.apimessage;
-                  } else {
-                    icon = (
-                      <Image
-                        src="/usericon.png"
-                        alt="Me"
-                        width="30"
-                        height="30"
-                        className={styles.usericon}
-                        priority
-                      />
-                    );
-                    // The latest message sent by the user will be animated while waiting for a response
-                    className =
-                      loading && index === chatMessages.length - 1
-                        ? styles.usermessagewaiting
-                        : styles.usermessage;
-                  }
-                  return (
-                    <div key={index} className={className}>
-                      {icon}
-                      <div className={styles.markdownanswer}>
-                        <ReactMarkdown linkTarget="_blank">
-                          {message.message}
-                        </ReactMarkdown>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            <div className={styles.center}>
-              <div className={styles.cloudform}>
-                <form onSubmit={handleSubmit}>
-                  <textarea
-                    disabled={loading}
-                    onKeyDown={handleEnter}
-                    ref={textAreaRef}
-                    autoFocus={false}
-                    rows={1}
-                    maxLength={512}
-                    id="userInput"
-                    name="userInput"
-                    placeholder={
-                      loading
-                        ? 'Waiting for response...'
-                        : 'How does notion api work?'
-                    }
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    className={styles.textarea}
-                  />
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className={styles.generatebutton}
-                  >
-                    {loading ? (
-                      <div className={styles.loadingwheel}>
-                        <LoadingDots color="#000" />
-                      </div>
-                    ) : (
-                      // Send icon SVG in input field
-                      <svg
-                        viewBox="0 0 20 20"
-                        className={styles.svgicon}
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
-                      </svg>
-                    )}
-                  </button>
-                </form>
-              </div>
-            </div>
-          </main>
-        </div> */}
+        <div>
+          <button
+            onClick={() =>
+              fetch('/api/test')
+                .then((res) => res.json())
+                .then((data) => console.log(data))
+            }
+          >
+            Test
+          </button>
+        </div>
       </Layout>
     </>
   );

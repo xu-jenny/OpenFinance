@@ -6,23 +6,32 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DATABASE_URL")
 }
 
 enum State {
-  NEWYORK
-  NEWJERSEY
-  CALIFORNIA
-  WASHINGTON
+  NY
+  NJ
+  CA
+  WA
+  CO
+  FL
 }
 
 model WarnNotice {
-  id            Int         @id @default(autoincrement())
-  createdAt     DateTime    @default(now())
-  noticeDate    DateTime 
-  layoffDate    DateTime?
-  numAffected   Int
-  state         State
+  id          Int       @id @default(autoincrement())
+  createdAt   DateTime  @default(now())
+  companyName String
+  noticeDate  DateTime
+  layoffDate  DateTime?
+  numAffected Int
+  state       State
+}
+
+model TableMetaData {
+  id           Int    @id @default(autoincrement())
+  tableName    String
+  promptSchema String
 }
