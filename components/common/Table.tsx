@@ -6,6 +6,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { WarnNotice } from '@prisma/client';
+import { format, isValid } from 'date-fns';
 
 type Notice = {
   companyName: string;
@@ -37,6 +38,24 @@ const defaultData: Notice[] = [
 
 const columnHelper = createColumnHelper<WarnNotice>();
 
+const dataFormatter = (value: any) => {
+  console.log(value, typeof value, isValid(value), value instanceof Date);
+  // Apply specific formatting based on the value's type or other conditions
+  if (typeof value === 'string') {
+    if (value.includes('http')) {
+      return <a href={value}>{value}</a>;
+    }
+    const parsedDate = Date.parse(value);
+    if (!isNaN(parsedDate)) {
+      return format(parsedDate, 'MM/dd/yy');
+    }
+  }
+  if (typeof value === 'object' && value instanceof Date) {
+    return format(value, 'MM/dd/yy');
+  }
+  return value;
+};
+
 const columns = [
   columnHelper.accessor('id', {
     cell: (info) => info.getValue(),
@@ -56,7 +75,6 @@ const columns = [
 ];
 
 export const Table = ({ data }: { data: WarnNotice[] }) => {
-  // const [data, setData] = React.useState(preloadData);
   if (!data) {
     return null; // or return a loading spinner
   }
@@ -66,14 +84,21 @@ export const Table = ({ data }: { data: WarnNotice[] }) => {
     getCoreRowModel: getCoreRowModel(),
   });
 
+  const formatDate = (date: number | Date) => {
+    return format(date, 'MM/dd/yy');
+  };
+
   return (
     <div className="p-2">
-      <table>
-        <thead className="border-black border">
+      <table className="border border-solid border-black">
+        <thead className="border border-solid border-black">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <th key={header.id}>
+                <th
+                  key={header.id}
+                  className="border border-solid border-black p-2"
+                >
                   {header.isPlaceholder
                     ? null
                     : flexRender(
@@ -87,10 +112,14 @@ export const Table = ({ data }: { data: WarnNotice[] }) => {
         </thead>
         <tbody>
           {table.getRowModel().rows.map((row) => (
-            <tr key={row.id}>
+            <tr key={row.id} className="border border-solid border-black">
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="border-grey border">
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                <td
+                  key={cell.id}
+                  className="border border-solid border-black p-2"
+                >
+                  {dataFormatter(cell.getValue())}
+                  {/* {flexRender(cell.column.columnDef.cell, cell.getContext())} */}
                 </td>
               ))}
             </tr>

@@ -5,9 +5,10 @@ import { Message } from '@/types/chat';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
-import LoadingDots from '@/components/ui/LoadingDots';
-import { Table } from '@/components/ui/Table';
+import LoadingDots from '@/components/common/LoadingDots';
+import { Table } from '@/components/common/Table';
 import { format } from 'sql-formatter';
+import SampleTable from '@/components/home/SampleTable';
 
 export default function Home() {
   const [query, setQuery] = useState<string>('');
@@ -162,7 +163,7 @@ export default function Home() {
       <Layout>
         <div className="grid grid-flow-col gap-3 p-3 m-3">
           <div className="bg-blue-100 col-span-6 p-3">
-            {data != null && <Table data={data} />}
+            <SampleTable />
           </div>
           <div className="col-span-6">
             <div className="p-3 flex flex-col">
