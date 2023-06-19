@@ -1,8 +1,40 @@
+import { supabaseClient } from '@/utils/supabase-client';
+import Login from './home/Login';
+import { useEffect, useState } from 'react';
+import { User } from '@supabase/supabase-js';
+
 interface LayoutProps {
   children?: React.ReactNode;
 }
 
+function Signout() {
+  const handleSignout = async () => {
+    try {
+      console.log('invoking signout');
+      await supabaseClient.auth.signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  return <button onClick={handleSignout}>Sign Out</button>;
+}
+
 export default function Layout({ children }: LayoutProps) {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await supabaseClient.auth.getUser();
+        setUser(user['data']['user']);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+    };
+
+    fetchUser();
+  }, []);
   return (
     <div className="mx-auto flex flex-col space-y-4">
       <header className="container sticky top-0 z-40 bg-white">
@@ -11,12 +43,19 @@ export default function Layout({ children }: LayoutProps) {
             <a href="#" className="hover:text-slate-600 cursor-pointer">
               Home
             </a>
+            <Signout />
           </nav>
         </div>
       </header>
       <div className="container">
         <main className="flex w-full flex-1 flex-col overflow-hidden">
-          {children}
+          {user != null ? (
+            <>
+              Welcome {user.email} {children}
+            </>
+          ) : (
+            <Login />
+          )}
         </main>
       </div>
     </div>

@@ -1,8 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { OpenAIEmbeddings } from 'langchain/embeddings';
 import { SupabaseVectorStore } from 'langchain/vectorstores';
-import { openai } from '@/utils/openai-client';
-import { supabaseClient } from '@/utils/supabase-client';
+import { openai, openaiComplete } from '@/utils/openai-client';
 import { makeChain } from '@/utils/makechain';
 import { prismaCli } from '@/prisma/prisma';
 import { Prisma } from '@prisma/client';
@@ -58,10 +57,7 @@ export default async function handler(
 
   let response;
   try {
-    console.log("invoking openai", question)
-    response = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: `
+    const GPT_PROMPT = `
 Generate a single SQL query that fulfills a request. 
 
 These are the table schemas:
@@ -91,15 +87,10 @@ output: Time Not Supported
 
 Remember to only output the SQL query or the "Time Not Supported" response. Make sure the SQL query is correct before outputting it. Do not output any other words.
 request: ${question}
-output:`,
-      temperature: 0,
-      max_tokens: 128,
-      top_p: 1,
-      frequency_penalty: 0.0,
-      presence_penalty: 0.0,
-    });
-    console.log('response', response['data']);
-    let sql = response['data']['choices'][0]['text'].trim()
+output:`
+    
+    let sql = await openaiComplete(GPT_PROMPT)
+    // let sql = response['data']['choices'][0]['text'].trim()
     if (sql == 'Time Not Supported'){
       return res.status(400).json({ message: "We only support queries for the past 12 months, please upgrade to access historical data."}) 
     }
