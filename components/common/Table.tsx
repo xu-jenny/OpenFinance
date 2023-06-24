@@ -1,45 +1,13 @@
 import * as React from 'react';
 import {
-  createColumnHelper,
+  ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { WarnNotice } from '@prisma/client';
 import { format, isValid } from 'date-fns';
 
-type Notice = {
-  companyName: string;
-  noticeDate: Date;
-  layOffDate: Date;
-  num_affected: number;
-};
-
-const defaultData: Notice[] = [
-  {
-    companyName: 'Meta',
-    noticeDate: new Date(2021, 1, 1),
-    layOffDate: new Date(2021, 2, 2),
-    num_affected: 321,
-  },
-  {
-    companyName: 'Google',
-    noticeDate: new Date(2021, 4, 1),
-    layOffDate: new Date(2021, 6, 15),
-    num_affected: 99,
-  },
-  {
-    companyName: 'Apple',
-    noticeDate: new Date(2021, 3, 1),
-    layOffDate: new Date(2021, 4, 15),
-    num_affected: 2000,
-  },
-];
-
-const columnHelper = createColumnHelper<WarnNotice>();
-
 const dataFormatter = (value: any) => {
-  console.log(value, typeof value, isValid(value), value instanceof Date);
   // Apply specific formatting based on the value's type or other conditions
   if (typeof value === 'string') {
     if (value.includes('http')) {
@@ -56,38 +24,18 @@ const dataFormatter = (value: any) => {
   return value;
 };
 
-const columns = [
-  columnHelper.accessor('id', {
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor('noticeDate', {
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor('state', {
-    cell: (info) => info.getValue(),
-  }),
-  // columnHelper.accessor('layoffDate', {
-  //   cell: (info) => info.getValue().toLocaleDateString(),
-  // }),
-  columnHelper.accessor('numAffected', {
-    cell: (info) => info.getValue(),
-  }),
-];
 
-export const Table = ({ data }: { data: WarnNotice[] }) => {
+export const Table = ({ data, columns }: { data: any[], columns: ColumnDef<any, any>[] }) => {
   if (!data) {
-    return null; // or return a loading spinner
+    return null; 
   }
+
+  console.log(data)
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
-
-  const formatDate = (date: number | Date) => {
-    return format(date, 'MM/dd/yy');
-  };
-
   return (
     <div className="p-2">
       <table className="border border-solid border-black">
@@ -119,7 +67,6 @@ export const Table = ({ data }: { data: WarnNotice[] }) => {
                   className="border border-solid border-black p-2"
                 >
                   {dataFormatter(cell.getValue())}
-                  {/* {flexRender(cell.column.columnDef.cell, cell.getContext())} */}
                 </td>
               ))}
             </tr>
@@ -130,3 +77,4 @@ export const Table = ({ data }: { data: WarnNotice[] }) => {
     </div>
   );
 };
+

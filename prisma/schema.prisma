@@ -18,6 +18,10 @@ enum State {
   WA
   CO
   FL
+  TX
+  NC
+  MI
+  MD
 }
 
 model WarnNotice {

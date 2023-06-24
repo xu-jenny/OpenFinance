@@ -5,8 +5,8 @@ import fs from "fs";
 const prisma = new PrismaClient();
 
 async function seed() {
-    const fileContent = fs.readFileSync("/Users/jennyxu/Desktop/projects/openfinance/prisma/data/co_processed.csv", "utf-8");
-    let warnNotices: { companyName: any; noticeDate: Date; layoffDate: Date | null; numAffected: number; state: "CO"; }[] = [];
+    const fileContent = fs.readFileSync("/Users/jennyxu/Desktop/projects/openfinance/prisma/data/clean_warn.csv", "utf-8");
+    let warnNotices: { companyName: any; noticeDate: Date; layoffDate: Date | null; numAffected: number; state: State; }[] = [];
     parse(fileContent, {
       delimiter: ',',
       columns: true,
@@ -29,14 +29,21 @@ async function seed() {
             noticeDate: new Date(item.noticeDate),
             layoffDate: isValidDate ? layoffDate : null,
             numAffected: isNaN(item.numAffected) ? -1 : Number(item.numAffected),
-            state: State.CO,
+            state: item.State as State,
           };
           warnNotices.push(warnNotice);
         }
       }
+      const warnNoticeCreateManyInput = warnNotices.map((notice) => ({
+        companyName: notice.companyName,
+        noticeDate: notice.noticeDate,
+        layoffDate: notice.layoffDate,
+        numAffected: notice.numAffected,
+        state: notice.state,
+      }));
       // await prisma.$transaction(warnNotices.map(warnNotice => prisma.warnNotice.create({ data: warnNotice })));
       await prisma.warnNotice.createMany({
-        data: warnNotices,
+        data: warnNoticeCreateManyInput,
         skipDuplicates: true, // Optional: skip duplicate records
       });
     });

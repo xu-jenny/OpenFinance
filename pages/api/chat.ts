@@ -59,6 +59,7 @@ export default async function handler(
   try {
     const GPT_PROMPT = `
 Generate a single SQL query that fulfills a request. 
+The SQL can only be reading and you should not generate any table alternation queries. Output "Query Not Supported" for any non-read requests.
 
 These are the table schemas:
 WarnNotice:
@@ -77,15 +78,18 @@ output: SELECT "state", SUM("numAffected") AS "totalAffected" FROM "WarnNotice" 
 request:  number of employees laid of in New York vs California
 output: SELECT SUM("numAffected") AS "NY", SUM(CASE WHEN "state" = 'CA' THEN "numAffected" ELSE 0 END) AS "CA" FROM "WarnNotice";
 
-If the request is related to time period, make sure the request is not any longer than 12 months. If it is, output "Time Not Supported". Here are two examples:
+request: delete all rows from New York
+output: Query Not Supported
+
+If the request is related to time period, make sure the request is not any longer than 36 months. If it is, output "Query Not Supported". Here are two examples:
 
 request: number affected in each month in Colorado vs Florida in past 3 months
 output: SELECT TO_CHAR(DATE_TRUNC('month', "noticeDate"), 'YYYY-MM') AS "month", SUM(CASE WHEN "state" = 'CO' THEN "numAffected" ELSE 0 END) AS "CO", SUM(CASE WHEN "state" = 'FL' THEN "numAffected" ELSE 0 END) AS "FL" FROM "WarnNotice" WHERE DATE_TRUNC('day', "noticeDate") >= DATE_TRUNC('month', NOW() - INTERVAL '3 months') GROUP BY "month"
 
-request: number of employees laid off in each month in Colorado in the past 2 years
-output: Time Not Supported
+request: number of employees laid off in each month in Colorado in the past 5 years
+output: Query Not Supported
 
-Remember to only output the SQL query or the "Time Not Supported" response. Make sure the SQL query is correct before outputting it. Do not output any other words.
+Remember to only output the SQL query or the "Query Not Supported" response. Make sure the SQL query is correct before outputting it. Do not output any other words.
 request: ${question}
 output:`
     
