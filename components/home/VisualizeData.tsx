@@ -18,13 +18,15 @@ const DynamicTable = ({ data }: { data: any }) => {
 
     return (
         <div>
-            <Table data={data} columns={columns} />
+            <Table data={data} columns={columns} paginate={true} />
         </div>
     )
 }
 
 export const VisualizeData = ({ data }: { data: any }) => {
-    const chart = data.length > 5 ? <TimeSeriesChart data={data}/> : <DynamicTable data={data} />
-    return chart
+    return (<>
+        <DynamicTable data={data} />
+        <TimeSeriesChart data={data}/>
+    </>)
 }
 
