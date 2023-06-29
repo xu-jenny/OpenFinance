@@ -14,14 +14,18 @@ async function execSql(query: string) {
 function convertBigInts(obj) {
   if (Array.isArray(obj)) {
     return obj.map(convertBigInts);
-  } else if (typeof obj === 'object' && obj !== null) {
+  } 
+  else if (typeof obj === 'object' && obj !== null) {
     let newObj = {};
     for (const key in obj) {
       newObj[key] = convertBigInts(obj[key]);
     }
     return newObj;
-  } else if (typeof obj === 'bigint') {
+  } 
+  else if (typeof obj === 'bigint') {
     return Number(obj);
+  } else if (typeof obj === 'string') {
+    return obj;
   } else {
     return obj;
   }
@@ -68,7 +72,7 @@ export default async function handler(
   let response;
   try {
     const GPT_PROMPT = `
-Generate a single SQL query that fulfills a request. 
+    Generate a single SQL query that fulfills a request. 
 The SQL can only be reading and you should not generate any table alternation queries. Output "Query Not Supported" for any non-read requests.
 
 These are the table schemas:
@@ -91,8 +95,18 @@ output: SELECT SUM("numAffected") AS "NY", SUM(CASE WHEN "state" = 'CA' THEN "nu
 request: delete all rows from New York
 output: Query Not Supported
 
+If the request is a time series request, then output the time unit (such as year, month) column name as "time" and always output the time in proper datetime format, and the request value as "value". Example:
+request: MoM change in texas layoffs
+output: WITH monthly_layoffs AS (SELECT DATE_TRUNC('month', "layoffDate") AS layoff_month, SUM("numAffected") AS total_layoffs FROM "WarnNotice" WHERE state = 'TX' AND "layoffDate" >= (CURRENT_DATE - INTERVAL '1 year') GROUP BY DATE_TRUNC('month', "layoffDate")) SELECT layoff_month as time, total_layoffs, total_layoffs - LAG(total_layoffs, 1) OVER (ORDER BY layoff_month) AS value FROM monthly_layoffs ORDER BY layoff_month;
+
+Be mindful that the sql runner does not support nested aggregate functions, and window functions such as LAG cannot be used directly inside aggregate functions. An example:
+request: yoy layoffs percent change at national level
+output: WITH yearly_layoffs AS (SELECT EXTRACT(YEAR FROM "layoffDate") AS time, SUM("numAffected") AS numLayoffs FROM "WarnNotice" WHERE "layoffDate" >= (CURRENT_DATE - INTERVAL '5 years') GROUP BY EXTRACT(YEAR FROM "layoffDate")) SELECT time, numLayoffs, LAG(numLayoffs) OVER (ORDER BY time) AS previousNumLayoffs, CAST(((numLayoffs - COALESCE(LAG(numLayoffs) OVER (ORDER BY time), 0)) / NULLIF(COALESCE(LAG(numLayoffs) OVER (ORDER BY time), 0), 0)) * 100 AS numeric(10, 1)) AS value FROM yearly_layoffs ORDER BY time;
+
+Here is an example of an incorrect output, because it violates the rule that window functions cannot be used directly inside aggregate functions: SELECT EXTRACT(YEAR FROM "layoffDate") AS time, SUM("numAffected") AS numLayoffs, SUM(LAG("numAffected") OVER (ORDER BY EXTRACT(YEAR FROM "layoffDate"))) AS previousNumLayoffs, CAST(((numLayoffs - previousNumLayoffs) / CAST(previousNumLayoffs AS float)) * 100 AS numeric(10, 1)) AS value FROM "WarnNotice" WHERE "layoffDate" >= (CURRENT_DATE - INTERVAL '5 years') GROUP BY EXTRACT(YEAR FROM "layoffDate") ORDER BY time;
+
 Remember to only output the SQL query or the "Query Not Supported" response. Make sure the SQL query is correct before outputting it. Do not output any other words.
-request: ${question}
+request: ${sanitizedQuestion}
 output:`
     
     let sql = await openaiComplete(GPT_PROMPT)
@@ -124,8 +138,10 @@ output:`
     // FROM "WarnNotice";`
 
     console.log("data", data)
-    data = convertBigInts(data)
-    res.status(200).json({data, sql})
+    const serializedArray = data.map(obj => JSON.stringify(obj, (_, v) => typeof v === 'bigint' ? v.toString() : v));
+    // const serializedObj = JSON.stringify(data, (_, v) => typeof v === 'bigint' ? v.toString() : v);
+    // data = convertBigInts(data)
+    res.status(200).json({data: serializedArray, sql})
 
     // let result = await prismaCli.$queryRaw`${sql.trim()}`execSql(sql.trim())
     // if ("sql" in response.lower()){
@@ -135,5 +151,6 @@ output:`
     // }
   } catch (error) {
     console.log('error', error);
+    res.status(400).json({ message: "Server error, please try again later!"})
   } 
 }

@@ -7,6 +7,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { format, isValid } from 'date-fns';
+import moment from 'moment';
 
 const dataFormatter = (value: any) => {
   // Apply specific formatting based on the value's type or other conditions
@@ -14,12 +15,10 @@ const dataFormatter = (value: any) => {
     if (value.includes('http')) {
       return <a href={value}>{value}</a>;
     }
-    const parsedDate = Date.parse(value);
-    if (!isNaN(parsedDate)) {
-      return format(parsedDate, 'MM/dd/yy');
-    }
+    let date = moment(value, 'MM/dd/yy')
+    date.isValid() ? date : value
   }
-  if (typeof value === 'object' && value instanceof Date) {
+  if (typeof value === 'object' && value instanceof Date && isValid(value)) {
     return format(value, 'MM/dd/yy');
   }
   return value;
@@ -37,7 +36,7 @@ export const Table = ({
   if (!data) {
     return null;
   }
-
+  
   const table = useReactTable({
     data,
     columns,
@@ -81,7 +80,7 @@ export const Table = ({
           ))}
         </tbody>
       </table>
-      {paginate && (
+      {paginate == false ? null : (
         <div className="flex items-center gap-2">
           <button
             className="border rounded p-1"
@@ -130,18 +129,6 @@ export const Table = ({
               className="border p-1 rounded w-16"
             />
           </span>
-          {/* <select
-            value={table.getState().pagination.pageSize}
-            onChange={(e) => {
-              table.setPageSize(Number(e.target.value));
-            }}
-          >
-            {[10, 20, 30, 40, 50].map((pageSize) => (
-              <option key={pageSize} value={pageSize}>
-                Show {pageSize}
-              </option>
-            ))}
-          </select> */}
         </div>
       )}
     </>

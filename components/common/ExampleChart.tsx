@@ -1,3 +1,4 @@
+import moment from 'moment';
 import React, { PureComponent, useState } from 'react';
 import {
   LineChart,
@@ -21,6 +22,10 @@ export const TimeSeriesChart = ({ data }: { data: any }) => {
 
   function getLines(data: any) {
     let lines = [];
+    if ('value' in data) {
+      lines.push({ key: 'value', color: colors[lines.length] });
+      return lines;
+    }
     for (const key in data) {
       if (typeof data[key] === 'number') {
         lines.push({ key, color: colors[lines.length] });
@@ -29,30 +34,35 @@ export const TimeSeriesChart = ({ data }: { data: any }) => {
     return lines;
   }
 
-  const formatDate = (time: string, isWeek: boolean = false): Date => {
+  const formatDate = (time: string, isWeek: boolean = false): Date | string => {
     if (isWeek) {
       const [year, week] = time.split('-');
-      const date = new Date(`${year}-01-01`);
-      date.setDate(date.getDate() + (parseInt(week) - 1) * 7);
-      // const options = { week: '2-digit', year: 'numeric' };
-      return new Date(date);
+      const date = moment().year(parseInt(year)).week(parseInt(week)).startOf('week');
+      return date.toDate()
+      // const date = new Date(`${year}-01-01`);
+      // date.setDate(date.getDate() + (parseInt(week) - 1) * 7);
+      // // const options = { week: '2-digit', year: 'numeric' };
+      // return new Date(date);
     }
-    return new Date(time);
+    let date = moment(time)
+    console.log(time)
+    return date.isValid() ? date.toDate() : time
   };
 
   const transformedData = data.map((item: { [x: string]: any }) => ({
     ...item,
     // @ts-ignore
     time:
-      'week' in item
+    'time' in item ? formatDate(item['time']) :
+    'week' in item
         ? formatDate(item['week'], true)
         : formatDate(item['month'] || item['day']),
   }));
   let breakDate = null;
+  let max = 0
   const generatePaddedData = (data: any[]): any[] => {
     const paddedData = [];
     data.sort((a, b) => a.time.getTime() - b.time.getTime());
-    console.log(data);
     const startDate = data[0].time;
     const endDate = data[data.length - 1].time;
 
@@ -96,14 +106,29 @@ export const TimeSeriesChart = ({ data }: { data: any }) => {
   };
 
   const paddedData = generatePaddedData(transformedData);
-  console.log(breakDate);
+  console.log(paddedData);
+  const maxVal = Math.max(...data.map(item => item.value));
   // console.log(breakPosition, paddedData[breakPosition]);
+
+  function formatXAxis(timeStr) {
+    // Check if it's a year only
+    if ((/^\d{4}$/).test(timeStr)) {
+      return timeStr; 
+    }
+    
+    if (moment(timeStr, moment.ISO_8601, true).isValid()) {
+      return moment(timeStr).format('MM/YYYY');
+    }
+  
+    // Default case: Return the input as is
+    return timeStr;
+  }
 
   return (
     <>
       <LineChart
         width={500}
-        height={300}
+        height={500}
         data={paddedData}
         margin={{
           top: 5,
@@ -113,8 +138,14 @@ export const TimeSeriesChart = ({ data }: { data: any }) => {
         }}
       >
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="time" tick={<CustomXAxisTick />} />
-        <YAxis />
+        <XAxis 
+          dataKey="time" 
+          tickFormatter={formatXAxis}
+          // type="number"
+          // scale="time"
+          // domain={['auto', 'auto']} 
+        />
+        <YAxis domain={[0, maxVal * 1.1]} />
         <Tooltip />
         <Legend />
         {getLines(data[0]).map((line) => (

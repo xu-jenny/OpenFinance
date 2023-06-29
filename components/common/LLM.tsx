@@ -33,7 +33,6 @@ export const LLM = ({ setResponse, setError, setParentLoading }: Props) => {
       setLoading(false);
       return setError(response['message']);
     }
-    console.log(response['data']);
     setResponse(response);
     setLoading(false);
     setParentLoading != null && setParentLoading(false);
