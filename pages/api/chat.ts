@@ -5,6 +5,7 @@ import { openai, openaiComplete } from '@/utils/openai-client';
 import { makeChain } from '@/utils/makechain';
 import { prismaCli } from '@/prisma/prisma';
 import { Prisma } from '@prisma/client';
+import { createQuery } from '@/utils/prisma-client';
 
 async function execSql(query: string) {
   const result = await prismaCli.$queryRaw`${query}`;
@@ -102,13 +103,15 @@ output:`;
     // let sql = `SELECT SUM("numAffected") AS "totalAffected" FROM "WarnNotice" WHERE "state" = 'CO' AND DATE_TRUNC('day', "noticeDate") >= DATE_TRUNC('month', NOW() - INTERVAL '2 months');`
     // let sql = `SELECT TO_CHAR(DATE_TRUNC('month', "noticeDate"), 'YYYY-MM') AS "month", SUM(CASE WHEN "state" = 'CO' THEN "numAffected" ELSE 0 END) AS "CO", SUM(CASE WHEN "state" = 'FL' THEN "numAffected" ELSE 0 END) AS "FL" FROM "WarnNotice" WHERE DATE_TRUNC('day', "noticeDate") >= DATE_TRUNC('month', NOW() - INTERVAL '3 months') GROUP BY "month";`
     let data: any = await prismaCli.$queryRaw(Prisma.raw(sql));
+
     const serializedArray = data.map((obj: any) =>
-      JSON.stringify(obj, (_, v) => (typeof v === 'bigint' ? v.toString() : v)),
+    JSON.stringify(obj, (_, v) => (typeof v === 'bigint' ? v.toString() : v)),
     );
     // const serializedObj = JSON.stringify(data, (_, v) => typeof v === 'bigint' ? v.toString() : v);
     // data = convertBigInts(data)
     res.status(200).json({ data: serializedArray, sql });
-
+    createQuery(question, sql, undefined)
+    
     // let result = await prismaCli.$queryRaw`${sql.trim()}`execSql(sql.trim())
     // if ("sql" in response.lower()){
     //   result = supabaseClient.rpc(response)    // array of json
@@ -118,5 +121,6 @@ output:`;
   } catch (error) {
     console.log('error', error);
     res.status(400).json({ message: 'Server error, please try again later!' });
+    createQuery(question, undefined, error as string)
   }
 }

@@ -2,13 +2,15 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multischema"]
 }
 
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DATABASE_URL")
+  schemas   = ["public", "auth"]
 }
 
 enum State {
@@ -22,6 +24,8 @@ enum State {
   NC
   MI
   MD
+
+  @@schema("public")
 }
 
 model WarnNotice {
@@ -32,10 +36,69 @@ model WarnNotice {
   layoffDate  DateTime?
   numAffected Int
   state       State
+
+  @@schema("public")
+}
+
+model Query {
+  id           Int      @id @default(autoincrement())
+  createdAt    DateTime @default(now())
+  question     String
+  llm_response String?
+  error        String?
+  User         User     @relation(fields: [uid], references: [id])
+  uid          String   @db.Uuid
+
+  @@schema("public")
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  email     String
+  queries   Query[]
+  queryId   Int?
+  account  Account @relation(fields: [id], references: [id])
+
+  @@schema("public")
+}
+
+model Account {
+  id   String @id @db.Uuid
+  aud                          String?
+  confirmation_sent_at          DateTime?
+  confirmation_token            String?
+  confirmed_at                  DateTime?
+  created_at                    DateTime?
+  email                         String?
+  email_change                  String?
+  email_change_confirm_status   String?
+  email_change_token_current    String?
+  email_change_token_new        String?
+  email_confirmed_at            DateTime?
+  encrypted_password            String?
+  instance_id                   String?
+  is_sso_user                   Boolean?
+  last_sign_in_at               DateTime?
+  phone_change                  String?
+  phone_change_token            String?
+  raw_app_meta_data             Json?
+  raw_user_meta_data            Json?
+  reauthentication_token        String?
+  recovery_sent_at              DateTime?
+  recovery_token                String?
+  role                          String?
+  updated_at                    DateTime?
+  User User[]
+
+  @@map("users")
+  @@schema("auth")
 }
 
 model TableMetaData {
   id           Int    @id @default(autoincrement())
   tableName    String
   promptSchema String
+
+  @@schema("public")
 }
