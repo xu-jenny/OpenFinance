@@ -6,8 +6,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  console.log("handling test function")
-  const result = await prismaCli.$queryRaw`SELECT * FROM "WarnNotice"`
-  console.log(result)
-  res.status(200).json({ message: result  });
+  console.log('handling test function');
+  const result = await prismaCli.$queryRaw`SELECT * FROM "WarnNotice"`;
+  console.log(result);
+  res.status(200).json({ message: result });
 }

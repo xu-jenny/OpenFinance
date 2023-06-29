@@ -7,22 +7,20 @@ import { prismaCli } from '@/prisma/prisma';
 import { Prisma } from '@prisma/client';
 
 async function execSql(query: string) {
-  const result = await prismaCli.$queryRaw`${query}`
-  return result
+  const result = await prismaCli.$queryRaw`${query}`;
+  return result;
 }
 
 function convertBigInts(obj) {
   if (Array.isArray(obj)) {
     return obj.map(convertBigInts);
-  } 
-  else if (typeof obj === 'object' && obj !== null) {
+  } else if (typeof obj === 'object' && obj !== null) {
     let newObj = {};
     for (const key in obj) {
       newObj[key] = convertBigInts(obj[key]);
     }
     return newObj;
-  } 
-  else if (typeof obj === 'bigint') {
+  } else if (typeof obj === 'bigint') {
     return Number(obj);
   } else if (typeof obj === 'string') {
     return obj;
@@ -59,15 +57,13 @@ export default async function handler(
   // // create the chain
   // const chain = makeChain();
 
+  // If the request is related to time period, make sure the request is not any longer than 36 months. If it is, output "Query Not Supported". Here are two examples:
 
-// If the request is related to time period, make sure the request is not any longer than 36 months. If it is, output "Query Not Supported". Here are two examples:
+  // request: number affected in each month in Colorado vs Florida in past 3 months
+  // output: SELECT TO_CHAR(DATE_TRUNC('month', "layoffDate"), 'YYYY-MM') AS "month", SUM(CASE WHEN "state" = 'CO' THEN "numAffected" ELSE 0 END) AS "CO", SUM(CASE WHEN "state" = 'FL' THEN "numAffected" ELSE 0 END) AS "FL" FROM "WarnNotice" WHERE DATE_TRUNC('day', "layoffDate") >= DATE_TRUNC('month', NOW() - INTERVAL '3 months') GROUP BY "month"
 
-// request: number affected in each month in Colorado vs Florida in past 3 months
-// output: SELECT TO_CHAR(DATE_TRUNC('month', "layoffDate"), 'YYYY-MM') AS "month", SUM(CASE WHEN "state" = 'CO' THEN "numAffected" ELSE 0 END) AS "CO", SUM(CASE WHEN "state" = 'FL' THEN "numAffected" ELSE 0 END) AS "FL" FROM "WarnNotice" WHERE DATE_TRUNC('day', "layoffDate") >= DATE_TRUNC('month', NOW() - INTERVAL '3 months') GROUP BY "month"
-
-// request: number of employees laid off in each month in Colorado in the past 5 years
-// output: Query Not Supported
-
+  // request: number of employees laid off in each month in Colorado in the past 5 years
+  // output: Query Not Supported
 
   let response;
   try {
@@ -107,41 +103,48 @@ Here is an example of an incorrect output, because it violates the rule that win
 
 Remember to only output the SQL query or the "Query Not Supported" response. Make sure the SQL query is correct before outputting it. Do not output any other words.
 request: ${sanitizedQuestion}
-output:`
-    
-    let sql = await openaiComplete(GPT_PROMPT)
-    console.log(sql)
-    console.log(sql == 'Query Not Supported')
+output:`;
+
+    let sql = await openaiComplete(GPT_PROMPT);
+    console.log(sql);
+    console.log(sql == 'Query Not Supported');
     // let sql = response['data']['choices'][0]['text'].trim()
-    if (sql == 'Time Not Supported' || sql == 'Query Not Supported'){
-      return res.status(400).json({ message: "We only support queries for the past 12 months, please upgrade to access historical data."}) 
+    if (sql == 'Time Not Supported' || sql == 'Query Not Supported') {
+      return res
+        .status(400)
+        .json({
+          message:
+            'We only support queries for the past 12 months, please upgrade to access historical data.',
+        });
     }
     // let sql = `SELECT SUM("numAffected") AS "totalAffected" FROM "WarnNotice" WHERE "state" = 'CO' AND DATE_TRUNC('day', "noticeDate") >= DATE_TRUNC('month', NOW() - INTERVAL '2 months');`
     // let sql = `SELECT TO_CHAR(DATE_TRUNC('month', "noticeDate"), 'YYYY-MM') AS "month", SUM(CASE WHEN "state" = 'CO' THEN "numAffected" ELSE 0 END) AS "CO", SUM(CASE WHEN "state" = 'FL' THEN "numAffected" ELSE 0 END) AS "FL" FROM "WarnNotice" WHERE DATE_TRUNC('day', "noticeDate") >= DATE_TRUNC('month', NOW() - INTERVAL '3 months') GROUP BY "month";`
-    let data = await prismaCli.$queryRaw(Prisma.raw(sql))
+    let data = await prismaCli.$queryRaw(Prisma.raw(sql));
 
     // let data = await prismaCli.$queryRaw`
-    // SELECT 
+    // SELECT
     //     "state",
     //     SUM("numAffected") AS "totalAffected"
-    // FROM 
+    // FROM
     //     "WarnNotice"
     // WHERE
     //     DATE_TRUNC('day', "noticeDate") >= DATE_TRUNC('month', NOW() - INTERVAL '3 months')
-    // GROUP BY 
+    // GROUP BY
     //     "state"
     // LIMIT 5;
-// `
-    // SELECT 
-    //   SUM("numAffected") AS "NY", 
-    //   SUM(CASE WHEN "state" = 'CA' THEN "numAffected" ELSE 0 END) AS "CA" 
+    // `
+    // SELECT
+    //   SUM("numAffected") AS "NY",
+    //   SUM(CASE WHEN "state" = 'CA' THEN "numAffected" ELSE 0 END) AS "CA"
     // FROM "WarnNotice";`
 
-    console.log("data", data)
-    const serializedArray = data.map(obj => JSON.stringify(obj, (_, v) => typeof v === 'bigint' ? v.toString() : v));
+    console.log('data', data);
+    const serializedArray = data.map((obj) =>
+      JSON.stringify(obj, (_, v) => (typeof v === 'bigint' ? v.toString() : v)),
+    );
     // const serializedObj = JSON.stringify(data, (_, v) => typeof v === 'bigint' ? v.toString() : v);
     // data = convertBigInts(data)
-    res.status(200).json({data: serializedArray, sql})
+    res.status(200).json({ data: serializedArray, sql });
 
     // let result = await prismaCli.$queryRaw`${sql.trim()}`execSql(sql.trim())
     // if ("sql" in response.lower()){
@@ -151,6 +154,6 @@ output:`
     // }
   } catch (error) {
     console.log('error', error);
-    res.status(400).json({ message: "Server error, please try again later!"})
-  } 
+    res.status(400).json({ message: 'Server error, please try again later!' });
+  }
 }

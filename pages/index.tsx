@@ -10,54 +10,54 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 const chartData = [
   {
-      "time": "2018",
-      "numlayoffs": "30932",
-      "previousnumlayoffs": null,
-      "value": null
+    time: '2018',
+    numlayoffs: '30932',
+    previousnumlayoffs: null,
+    value: null,
   },
   {
-      "time": "2019",
-      "numlayoffs": "58771",
-      "previousnumlayoffs": "30932",
-      "value": "0"
+    time: '2019',
+    numlayoffs: '58771',
+    previousnumlayoffs: '30932',
+    value: '0',
   },
   {
-      "time": "2020",
-      "numlayoffs": "414138",
-      "previousnumlayoffs": "58771",
-      "value": "600"
+    time: '2020',
+    numlayoffs: '414138',
+    previousnumlayoffs: '58771',
+    value: '600',
   },
   {
-      "time": "2021",
-      "numlayoffs": "55001",
-      "previousnumlayoffs": "414138",
-      "value": "0"
+    time: '2021',
+    numlayoffs: '55001',
+    previousnumlayoffs: '414138',
+    value: '0',
   },
   {
-      "time": "2022",
-      "numlayoffs": "67641",
-      "previousnumlayoffs": "55001",
-      "value": "0"
+    time: '2022',
+    numlayoffs: '67641',
+    previousnumlayoffs: '55001',
+    value: '0',
   },
   {
-      "time": "2023",
-      "numlayoffs": "108181",
-      "previousnumlayoffs": "67641",
-      "value": "0"
+    time: '2023',
+    numlayoffs: '108181',
+    previousnumlayoffs: '67641',
+    value: '0',
   },
   {
-      "time": "2024",
-      "numlayoffs": "410",
-      "previousnumlayoffs": "108181",
-      "value": "0"
+    time: '2024',
+    numlayoffs: '410',
+    previousnumlayoffs: '108181',
+    value: '0',
   },
   {
-      "time": "2025",
-      "numlayoffs": "1050",
-      "previousnumlayoffs": "410",
-      "value": "100"
-  }
-]
+    time: '2025',
+    numlayoffs: '1050',
+    previousnumlayoffs: '410',
+    value: '100',
+  },
+];
 
 export default function Home() {
   const [loading, setLoading] = useState<boolean>(false);
@@ -76,7 +76,7 @@ export default function Home() {
       <Layout>
         <div className="grid grid-flow-col gap-3 p-3 m-3">
           <div className="col-span-3">
-            <div className='bg-blue-100 p-3'>
+            <div className="bg-blue-100 p-3">
               <SampleTable />
               {/* <VisualizeData data={chartData} /> */}
             </div>
@@ -104,11 +104,16 @@ export default function Home() {
                 setError={setError}
               />
 
-              {loading && <div className="items-center justify-center p-6 mt-3"><LoadingSpinner /><p className='mt-3'>Asking AI...</p></div>}
+              {loading && (
+                <div className="items-center justify-center p-6 mt-3">
+                  <LoadingSpinner />
+                  <p className="mt-3">Asking AI...</p>
+                </div>
+              )}
               {error.length > 0 && <p>{error}</p>}
               {aggregatedData != null && aggregatedData.length > 0 && (
                 <div className="mt-3">
-                    <VisualizeData data={aggregatedData} />
+                  <VisualizeData data={aggregatedData} />
                 </div>
               )}
             </div>

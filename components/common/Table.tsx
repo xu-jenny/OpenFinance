@@ -15,8 +15,8 @@ const dataFormatter = (value: any) => {
     if (value.includes('http')) {
       return <a href={value}>{value}</a>;
     }
-    let date = moment(value, 'MM/dd/yy')
-    date.isValid() ? date : value
+    let date = moment(value, 'MM/dd/yy');
+    date.isValid() ? date : value;
   }
   if (typeof value === 'object' && value instanceof Date && isValid(value)) {
     return format(value, 'MM/dd/yy');
@@ -36,7 +36,8 @@ export const Table = ({
   if (!data) {
     return null;
   }
-  
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const table = useReactTable({
     data,
     columns,

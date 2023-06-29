@@ -74,5 +74,5 @@ export const makeChain = () => {
     { prompt: SQL_PROMPT },
   );
 
-  return docChain
-}
+  return docChain;
+};

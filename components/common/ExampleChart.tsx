@@ -37,29 +37,33 @@ export const TimeSeriesChart = ({ data }: { data: any }) => {
   const formatDate = (time: string, isWeek: boolean = false): Date | string => {
     if (isWeek) {
       const [year, week] = time.split('-');
-      const date = moment().year(parseInt(year)).week(parseInt(week)).startOf('week');
-      return date.toDate()
+      const date = moment()
+        .year(parseInt(year))
+        .week(parseInt(week))
+        .startOf('week');
+      return date.toDate();
       // const date = new Date(`${year}-01-01`);
       // date.setDate(date.getDate() + (parseInt(week) - 1) * 7);
       // // const options = { week: '2-digit', year: 'numeric' };
       // return new Date(date);
     }
-    let date = moment(time)
-    console.log(time)
-    return date.isValid() ? date.toDate() : time
+    let date = moment(time);
+    console.log(time);
+    return date.isValid() ? date.toDate() : time;
   };
 
   const transformedData = data.map((item: { [x: string]: any }) => ({
     ...item,
     // @ts-ignore
     time:
-    'time' in item ? formatDate(item['time']) :
-    'week' in item
+      'time' in item
+        ? formatDate(item['time'])
+        : 'week' in item
         ? formatDate(item['week'], true)
         : formatDate(item['month'] || item['day']),
   }));
   let breakDate = null;
-  let max = 0
+  let max = 0;
   const generatePaddedData = (data: any[]): any[] => {
     const paddedData = [];
     data.sort((a, b) => a.time.getTime() - b.time.getTime());
@@ -107,19 +111,19 @@ export const TimeSeriesChart = ({ data }: { data: any }) => {
 
   const paddedData = generatePaddedData(transformedData);
   console.log(paddedData);
-  const maxVal = Math.max(...data.map(item => item.value));
+  const maxVal = Math.max(...data.map((item: { value: any }) => item.value));
   // console.log(breakPosition, paddedData[breakPosition]);
 
-  function formatXAxis(timeStr) {
+  function formatXAxis(timeStr: any) {
     // Check if it's a year only
-    if ((/^\d{4}$/).test(timeStr)) {
-      return timeStr; 
+    if (/^\d{4}$/.test(timeStr)) {
+      return timeStr;
     }
-    
+
     if (moment(timeStr, moment.ISO_8601, true).isValid()) {
       return moment(timeStr).format('MM/YYYY');
     }
-  
+
     // Default case: Return the input as is
     return timeStr;
   }
@@ -138,12 +142,12 @@ export const TimeSeriesChart = ({ data }: { data: any }) => {
         }}
       >
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis 
-          dataKey="time" 
+        <XAxis
+          dataKey="time"
           tickFormatter={formatXAxis}
           // type="number"
           // scale="time"
-          // domain={['auto', 'auto']} 
+          // domain={['auto', 'auto']}
         />
         <YAxis domain={[0, maxVal * 1.1]} />
         <Tooltip />

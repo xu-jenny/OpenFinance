@@ -25,8 +25,12 @@ export default function Login() {
     return (
       <div className="flex items-center justify-center h-screen -mt-12">
         <div className="border border-grey-300 p-3 w-1/3">
-          <h3 className='items-center justify-center'>Sign in</h3>
-          <Auth supabaseClient={supabaseClient} appearance={{ theme: ThemeSupa }} providers={[]} />
+          <h3 className="items-center justify-center">Sign in</h3>
+          <Auth
+            supabaseClient={supabaseClient}
+            appearance={{ theme: ThemeSupa }}
+            providers={[]}
+          />
         </div>
       </div>
     );

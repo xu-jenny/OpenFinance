@@ -32,8 +32,6 @@ interface ChartProps {
   showLegend?: boolean;
 }
 
-
-
 //TODO: dynamic keys instead of default value
 export const Chart: React.FC<ChartProps> = ({
   data,
