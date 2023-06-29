@@ -11,24 +11,6 @@ async function execSql(query: string) {
   return result;
 }
 
-function convertBigInts(obj) {
-  if (Array.isArray(obj)) {
-    return obj.map(convertBigInts);
-  } else if (typeof obj === 'object' && obj !== null) {
-    let newObj = {};
-    for (const key in obj) {
-      newObj[key] = convertBigInts(obj[key]);
-    }
-    return newObj;
-  } else if (typeof obj === 'bigint') {
-    return Number(obj);
-  } else if (typeof obj === 'string') {
-    return obj;
-  } else {
-    return obj;
-  }
-}
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
@@ -119,27 +101,8 @@ output:`;
     }
     // let sql = `SELECT SUM("numAffected") AS "totalAffected" FROM "WarnNotice" WHERE "state" = 'CO' AND DATE_TRUNC('day', "noticeDate") >= DATE_TRUNC('month', NOW() - INTERVAL '2 months');`
     // let sql = `SELECT TO_CHAR(DATE_TRUNC('month', "noticeDate"), 'YYYY-MM') AS "month", SUM(CASE WHEN "state" = 'CO' THEN "numAffected" ELSE 0 END) AS "CO", SUM(CASE WHEN "state" = 'FL' THEN "numAffected" ELSE 0 END) AS "FL" FROM "WarnNotice" WHERE DATE_TRUNC('day', "noticeDate") >= DATE_TRUNC('month', NOW() - INTERVAL '3 months') GROUP BY "month";`
-    let data = await prismaCli.$queryRaw(Prisma.raw(sql));
-
-    // let data = await prismaCli.$queryRaw`
-    // SELECT
-    //     "state",
-    //     SUM("numAffected") AS "totalAffected"
-    // FROM
-    //     "WarnNotice"
-    // WHERE
-    //     DATE_TRUNC('day', "noticeDate") >= DATE_TRUNC('month', NOW() - INTERVAL '3 months')
-    // GROUP BY
-    //     "state"
-    // LIMIT 5;
-    // `
-    // SELECT
-    //   SUM("numAffected") AS "NY",
-    //   SUM(CASE WHEN "state" = 'CA' THEN "numAffected" ELSE 0 END) AS "CA"
-    // FROM "WarnNotice";`
-
-    console.log('data', data);
-    const serializedArray = data.map((obj) =>
+    let data: any = await prismaCli.$queryRaw(Prisma.raw(sql));
+    const serializedArray = data.map((obj: any) =>
       JSON.stringify(obj, (_, v) => (typeof v === 'bigint' ? v.toString() : v)),
     );
     // const serializedObj = JSON.stringify(data, (_, v) => typeof v === 'bigint' ? v.toString() : v);

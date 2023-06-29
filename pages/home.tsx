@@ -3,61 +3,8 @@ import Layout from '@/components/layout';
 import { format } from 'sql-formatter';
 import SampleTable from '@/components/home/SampleTable';
 import { LLM } from '@/components/common/LLM';
-import Chart from '@/components/common/Chart';
-import { TimeSeriesChart } from '@/components/common/ExampleChart';
 import { VisualizeData } from '@/components/home/VisualizeData';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-
-const chartData = [
-  {
-    time: '2018',
-    numlayoffs: '30932',
-    previousnumlayoffs: null,
-    value: null,
-  },
-  {
-    time: '2019',
-    numlayoffs: '58771',
-    previousnumlayoffs: '30932',
-    value: '0',
-  },
-  {
-    time: '2020',
-    numlayoffs: '414138',
-    previousnumlayoffs: '58771',
-    value: '600',
-  },
-  {
-    time: '2021',
-    numlayoffs: '55001',
-    previousnumlayoffs: '414138',
-    value: '0',
-  },
-  {
-    time: '2022',
-    numlayoffs: '67641',
-    previousnumlayoffs: '55001',
-    value: '0',
-  },
-  {
-    time: '2023',
-    numlayoffs: '108181',
-    previousnumlayoffs: '67641',
-    value: '0',
-  },
-  {
-    time: '2024',
-    numlayoffs: '410',
-    previousnumlayoffs: '108181',
-    value: '0',
-  },
-  {
-    time: '2025',
-    numlayoffs: '1050',
-    previousnumlayoffs: '410',
-    value: '100',
-  },
-];
 
 export default function Home() {
   const [loading, setLoading] = useState<boolean>(false);
