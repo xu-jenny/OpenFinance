@@ -16,39 +16,13 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  const { question, history } = req.body;
+  const { question, uid } = req.body;
 
   if (!question) {
     return res.status(400).json({ message: 'No question in the request' });
   }
   // OpenAI recommends replacing newlines with spaces for best results
   const sanitizedQuestion = question.trim().replaceAll('\n', ' ');
-
-  // res.writeHead(200, {
-  //   'Content-Type': 'text/event-stream',
-  //   'Cache-Control': 'no-cache, no-transform',
-  //   Connection: 'keep-alive',
-  // });
-
-  // const sendData = (data: string) => {
-  //   res.write(`data: ${data}\n\n`);
-  // };
-
-  // sendData(JSON.stringify({ data: '' }));
-
-  // const model = openai;
-  // // create the chain
-  // const chain = makeChain();
-
-  // If the request is related to time period, make sure the request is not any longer than 36 months. If it is, output "Query Not Supported". Here are two examples:
-
-  // request: number affected in each month in Colorado vs Florida in past 3 months
-  // output: SELECT TO_CHAR(DATE_TRUNC('month', "layoffDate"), 'YYYY-MM') AS "month", SUM(CASE WHEN "state" = 'CO' THEN "numAffected" ELSE 0 END) AS "CO", SUM(CASE WHEN "state" = 'FL' THEN "numAffected" ELSE 0 END) AS "FL" FROM "WarnNotice" WHERE DATE_TRUNC('day', "layoffDate") >= DATE_TRUNC('month', NOW() - INTERVAL '3 months') GROUP BY "month"
-
-  // request: number of employees laid off in each month in Colorado in the past 5 years
-  // output: Query Not Supported
-
-  let response;
   try {
     const GPT_PROMPT = `
     Generate a single SQL query that fulfills a request. 
@@ -90,9 +64,8 @@ output:`;
 
     let sql = await openaiComplete(GPT_PROMPT);
     console.log(sql);
-    console.log(sql == 'Query Not Supported');
-    // let sql = response['data']['choices'][0]['text'].trim()
     if (sql == 'Time Not Supported' || sql == 'Query Not Supported') {
+      createQuery(uid, question, sql, undefined)
       return res
         .status(400)
         .json({
@@ -107,20 +80,12 @@ output:`;
     const serializedArray = data.map((obj: any) =>
     JSON.stringify(obj, (_, v) => (typeof v === 'bigint' ? v.toString() : v)),
     );
-    // const serializedObj = JSON.stringify(data, (_, v) => typeof v === 'bigint' ? v.toString() : v);
-    // data = convertBigInts(data)
     res.status(200).json({ data: serializedArray, sql });
-    createQuery(question, sql, undefined)
-    
-    // let result = await prismaCli.$queryRaw`${sql.trim()}`execSql(sql.trim())
-    // if ("sql" in response.lower()){
-    //   result = supabaseClient.rpc(response)    // array of json
-    //   console.log("result", result)
-    //   return { "data": result }
-    // }
+    createQuery(uid, question, sql, undefined)
+
   } catch (error) {
     console.log('error', error);
     res.status(400).json({ message: 'Server error, please try again later!' });
-    createQuery(question, undefined, error as string)
+    createQuery(uid, question, undefined, error as string)
   }
 }

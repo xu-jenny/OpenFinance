@@ -1,12 +1,19 @@
+import { User } from '@supabase/supabase-js';
 import { useState } from 'react';
 
 type Props = {
   setResponse: (response: any) => void;
   setError: (message: string) => void;
   setParentLoading?: (loading: boolean) => void;
+  user: User | null;
 };
 
-export const LLM = ({ setResponse, setError, setParentLoading }: Props) => {
+export const LLM = ({
+  setResponse,
+  setError,
+  setParentLoading,
+  user,
+}: Props) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string>('');
 
@@ -22,6 +29,7 @@ export const LLM = ({ setResponse, setError, setParentLoading }: Props) => {
       },
       body: JSON.stringify({
         question,
+        uid: user?.id,
       }),
     })
       .then((response) => response.json())

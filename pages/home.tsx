@@ -5,12 +5,28 @@ import SampleTable from '@/components/home/SampleTable';
 import { LLM } from '@/components/common/LLM';
 import { VisualizeData } from '@/components/home/VisualizeData';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { User } from '@supabase/supabase-js';
+import { supabaseClient } from '@/utils/supabase-client';
 
 export default function Home() {
   const [loading, setLoading] = useState<boolean>(false);
   const [aggregatedData, setAggregatedData] = useState<any[]>([]);
   const [sql, setSql] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await supabaseClient.auth.getUser();
+        setUser(user['data']['user']);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   function setResponse(response: any) {
     let aggData = response['data'].map(JSON.parse);
@@ -49,6 +65,7 @@ export default function Home() {
                 setResponse={setResponse}
                 setParentLoading={setLoading}
                 setError={setError}
+                user={user}
               />
 
               {loading && (
@@ -66,17 +83,25 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div>
+        {/* <div>
           <button
-            onClick={() =>
-              fetch('/api/test')
+            onClick={async () =>
+              await fetch('/api/test', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  uid: user?.id,
+                }),
+              })
                 .then((res) => res.json())
                 .then((data) => console.log(data))
             }
           >
             Test
           </button>
-        </div>
+        </div> */}
       </Layout>
     </>
   );
