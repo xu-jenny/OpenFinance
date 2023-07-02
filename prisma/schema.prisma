@@ -1,29 +1,11 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
-  // previewFeatures = ["multischema"]
 }
 
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DATABASE_URL")
-  // schemas   = ["public", "auth"]
-}
-
-enum State {
-  NY
-  NJ
-  CA
-  WA
-  CO
-  FL
-  TX
-  NC
-  MI
-  MD
 }
 
 model WarnNotice {
@@ -42,12 +24,12 @@ model Question {
   question     String
   llm_response String?
   error        String?
-  User         User     @relation(fields: [uid], references: [id])
   uid          String   @db.Uuid
+  User         User     @relation(fields: [uid], references: [id])
 }
 
 model User {
-  id        String     @id @db.Uuid // @default(uuid()) @db.Uuid
+  id        String     @id @db.Uuid
   createdAt DateTime   @default(now())
   email     String
   Question  Question[]
@@ -57,4 +39,17 @@ model TableMetaData {
   id           Int    @id @default(autoincrement())
   tableName    String
   promptSchema String
+}
+
+enum State {
+  NY
+  NJ
+  CA
+  WA
+  CO
+  FL
+  TX
+  NC
+  MI
+  MD
 }
