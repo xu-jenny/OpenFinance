@@ -24,15 +24,15 @@ model Question {
   question     String
   llm_response String?
   error        String?
-  uid          String   @db.Uuid
-  User         User     @relation(fields: [uid], references: [id])
+  // uid          String   @db.Uuid
+  // User         User     @relation(fields: [uid], references: [id])
 }
 
 model User {
-  id        String     @id @db.Uuid
-  createdAt DateTime   @default(now())
+  id        String   @id @db.Uuid
+  createdAt DateTime @default(now())
   email     String
-  Question  Question[]
+  // Question  Question[]
 }
 
 model TableMetaData {

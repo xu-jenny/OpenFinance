@@ -1,28 +1,17 @@
+import { isValid } from 'date-fns';
 import React from 'react';
-import { Table } from '../common/Table';
-import { Column, createColumnHelper } from '@tanstack/react-table';
-import { TimeSeriesChart } from '../common/ExampleChart';
-import { format, isValid } from 'date-fns';
 
-const DynamicTable = ({ data }: { data: any }) => {
-  const columnHelper = createColumnHelper<any>();
-  const columns = React.useMemo(() => {
-    if (data.length > 0) {
-      return Object.keys(data[0]).map((key) =>
-        columnHelper.accessor(key, {
-          cell: (info) => info.getValue(),
-        }),
-      );
-    }
-    return [];
-  }, [columnHelper, data]);
+import { TimeSeriesChart } from '../common/TimeSeriesChart';
+import DynamicTable from './DynamicTable';
 
-  return (
-    <>
-      <Table data={data} columns={columns} paginate={true} />
-    </>
+function processTimeSeriesData(data: any[]) {
+  const filteredData = data.filter(
+    (item: { value: any }) => item.value !== null && item.value > 0,
   );
-};
+  if (filteredData.length < 5) {
+    return null;
+  }
+}
 
 export const VisualizeData = ({ data }: { data: any }) => {
   console.log(data);

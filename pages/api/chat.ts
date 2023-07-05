@@ -48,13 +48,13 @@ output: SELECT SUM("numAffected") AS "NY", SUM(CASE WHEN "state" = 'CA' THEN "nu
 request: delete all rows from New York
 output: Query Not Supported
 
-If the request is a time series request, then output the time unit (such as year, month) column name as "time" and always output the time in proper datetime format, and the request value as "value". Example:
+If the request is a time series request, then output the time unit (such as year, month) column name as "dt_time". Alway output any time columns in proper datetime format, and prefix the column name with "dt_". Always name the request value column as "value". Example:
 request: MoM change in texas layoffs
-output: WITH monthly_layoffs AS (SELECT DATE_TRUNC('month', "layoffDate") AS layoff_month, SUM("numAffected") AS total_layoffs FROM "WarnNotice" WHERE state = 'TX' AND "layoffDate" >= (CURRENT_DATE - INTERVAL '1 year') GROUP BY DATE_TRUNC('month', "layoffDate")) SELECT layoff_month as time, total_layoffs, total_layoffs - LAG(total_layoffs, 1) OVER (ORDER BY layoff_month) AS value FROM monthly_layoffs ORDER BY layoff_month;
+output: WITH monthly_layoffs AS (SELECT DATE_TRUNC('month', "layoffDate") AS layoff_month, SUM("numAffected") AS total_layoffs FROM "WarnNotice" WHERE state = 'TX' AND "layoffDate" >= (CURRENT_DATE - INTERVAL '1 year') GROUP BY DATE_TRUNC('month', "layoffDate")) SELECT layoff_month as dt_time, total_layoffs, total_layoffs - LAG(total_layoffs, 1) OVER (ORDER BY layoff_month) AS value FROM monthly_layoffs ORDER BY layoff_month;
 
 Be mindful that the sql runner does not support nested aggregate functions, and window functions such as LAG cannot be used directly inside aggregate functions. An example:
 request: yoy layoffs percent change at national level
-output: WITH yearly_layoffs AS (SELECT EXTRACT(YEAR FROM "layoffDate") AS time, SUM("numAffected") AS numLayoffs FROM "WarnNotice" WHERE "layoffDate" >= (CURRENT_DATE - INTERVAL '5 years') GROUP BY EXTRACT(YEAR FROM "layoffDate")) SELECT time, numLayoffs, LAG(numLayoffs) OVER (ORDER BY time) AS previousNumLayoffs, CAST(((numLayoffs - COALESCE(LAG(numLayoffs) OVER (ORDER BY time), 0)) / NULLIF(COALESCE(LAG(numLayoffs) OVER (ORDER BY time), 0), 0)) * 100 AS numeric(10, 1)) AS value FROM yearly_layoffs ORDER BY time;
+output: WITH yearly_layoffs AS (SELECT EXTRACT(YEAR FROM "layoffDate") AS dt_time, SUM("numAffected") AS numLayoffs FROM "WarnNotice" WHERE "layoffDate" >= (CURRENT_DATE - INTERVAL '5 years') GROUP BY EXTRACT(YEAR FROM "layoffDate")) SELECT time, numLayoffs, LAG(numLayoffs) OVER (ORDER BY time) AS previousNumLayoffs, CAST(((numLayoffs - COALESCE(LAG(numLayoffs) OVER (ORDER BY time), 0)) / NULLIF(COALESCE(LAG(numLayoffs) OVER (ORDER BY time), 0), 0)) * 100 AS numeric(10, 1)) AS value FROM yearly_layoffs ORDER BY time;
 
 Here is an example of an incorrect output, because it violates the rule that window functions cannot be used directly inside aggregate functions: SELECT EXTRACT(YEAR FROM "layoffDate") AS time, SUM("numAffected") AS numLayoffs, SUM(LAG("numAffected") OVER (ORDER BY EXTRACT(YEAR FROM "layoffDate"))) AS previousNumLayoffs, CAST(((numLayoffs - previousNumLayoffs) / CAST(previousNumLayoffs AS float)) * 100 AS numeric(10, 1)) AS value FROM "WarnNotice" WHERE "layoffDate" >= (CURRENT_DATE - INTERVAL '5 years') GROUP BY EXTRACT(YEAR FROM "layoffDate") ORDER BY time;
 
@@ -65,7 +65,7 @@ output:`;
     let sql = await openaiComplete(GPT_PROMPT);
     console.log(sql);
     if (sql == 'Time Not Supported' || sql == 'Query Not Supported') {
-      createQuery(uid, question, sql, undefined)
+      createQuery(question, sql, undefined)
       return res
         .status(400)
         .json({
@@ -81,11 +81,11 @@ output:`;
     JSON.stringify(obj, (_, v) => (typeof v === 'bigint' ? v.toString() : v)),
     );
     res.status(200).json({ data: serializedArray, sql });
-    createQuery(uid, question, sql, undefined)
+    createQuery(question, sql, undefined)
 
   } catch (error) {
     console.log('error', error);
     res.status(400).json({ message: 'Server error, please try again later!' });
-    createQuery(uid, question, undefined, error as string)
+    createQuery(question, undefined, error as string)
   }
 }

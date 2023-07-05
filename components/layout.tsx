@@ -22,20 +22,20 @@ function Signout() {
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const [user, setUser] = useState<User | null>(null);
+  // const [user, setUser] = useState<User | null>(null);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const user = await supabaseClient.auth.getUser();
-        setUser(user['data']['user']);
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchUser = async () => {
+  //     try {
+  //       const user = await supabaseClient.auth.getUser();
+  //       setUser(user['data']['user']);
+  //     } catch (error) {
+  //       console.error('Error fetching user:', error);
+  //     }
+  //   };
 
-    fetchUser();
-  }, []);
+  //   fetchUser();
+  // }, []);
   return (
     <div className="mx-auto flex flex-col space-y-4">
       <header className="sticky top-0 z-40 bg-white">
@@ -45,14 +45,15 @@ export default function Layout({ children }: LayoutProps) {
               Home
             </a>
           </nav>
-          <div className="mr-4 pr-6">
+          {/* <div className="mr-4 pr-6">
             <Account name={user?.email} />
-          </div>
+          </div> */}
         </div>
       </header>
       <div className="container">
         <main className="flex w-full flex-1 flex-col overflow-hidden">
-          {user != null ? <>{children}</> : <Login />}
+          {/* {user != null ? <>{children}</> : <Login />} */}
+          {children}
         </main>
       </div>
     </div>
