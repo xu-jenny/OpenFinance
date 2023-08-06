@@ -62,7 +62,7 @@ const SampleTable = () => {
 
   return (
     <div className="p-2 overflow-x-auto max-w-full">
-      <h1 className="text-xl font-bold">Sample Warn Data</h1>
+      <h1 className="text-xl font-bold">Sample {tableName} Data</h1>
       <DynamicTable data={data} paginate={false} />
     </div>
   );

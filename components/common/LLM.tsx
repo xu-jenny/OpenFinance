@@ -78,7 +78,7 @@ export const LLM = ({
       <button
         type="submit"
         disabled={loading}
-        className="border border-grey mt-3 w-fit p-2"
+        className="border border-grey mt-3 w-fit p-2 ml-auto"
         onClick={() => handleSubmit()}
       >
         Submit

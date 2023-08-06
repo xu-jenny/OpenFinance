@@ -35,12 +35,12 @@ export const VisualizeData = ({ data }: { data: any }) => {
   const transformedData = data.map((item: { [x: string]: any }) => ({
     ...item,
     // @ts-ignore
-    time:
-      'time' in item
-        ? formatDate(item['time'])
-        : 'week' in item
-        ? formatDate(item['week'], true)
-        : formatDate(item['month'] || item['day']),
+    // time:
+    //   'time' in item
+    //     ? formatDate(item['time'])
+    //     : 'week' in item
+    //     ? formatDate(item['week'], true)
+    //     : formatDate(item['month'] || item['day']),
   }));
   transformedData.sort((a: any, b: any) => a.time - b.time);
   const filteredData = transformedData.filter(
@@ -51,7 +51,7 @@ export const VisualizeData = ({ data }: { data: any }) => {
       <div className="flex flex-col items-center">
         <DynamicTable data={transformedData} />
       </div>
-      {filteredData.length > 4 && <TimeSeriesChart data={filteredData} />}
+      {/* {filteredData.length > 4 && <TimeSeriesChart data={filteredData} />} */}
     </div>
   );
 };

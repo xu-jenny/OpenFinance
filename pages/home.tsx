@@ -37,12 +37,12 @@ export default function Home() {
   return (
     <>
       <Layout>
-        <div className="grid grid-flow-col gap-3 p-3 m-3">
-          <div className="col-span-3">
-            <div className="bg-blue-100 p-3 max-w-[50%]">
+        <div className="grid grid-cols-2 gap-4 p-3 m-3">
+          <div className="flex flex-col">
+            <div className="bg-blue-100 p-3">
               <SampleTable />
-              {/* <VisualizeData data={chartData} /> */}
             </div>
+            {/* <VisualizeData data={chartData} /> */}
             {sql.length > 0 && (
               <>
                 <hr className="my-3 h-0.5 border-t-0 bg-neutral-100 opacity-500 dark:opacity-50" />
@@ -59,7 +59,7 @@ export default function Home() {
               </>
             )}
           </div>
-          <div className="col-span-10">
+          <div className="width-[50%] flex-1 overflow-x-hidden">
             <div className="p-3 flex flex-col">
               <LLM
                 setResponse={setResponse}

@@ -51,10 +51,11 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </header>
       <div className="container">
-        <main className="flex w-full flex-1 flex-col overflow-hidden">
-          {/* {user != null ? <>{children}</> : <Login />} */}
-          {children}
-        </main>
+        {children}
+        {/* <main className="flex w-full flex-1 flex-col overflow-hidden"> */}
+        {/* {user != null ? <>{children}</> : <Login />} */}
+        {/* {children} */}
+        {/* </main> */}
       </div>
     </div>
   );

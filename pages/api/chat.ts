@@ -66,12 +66,9 @@ Longitude: Longitude of the crime. Float
 
 Make sure the generated SQL query is valid before outputting it. Column names shuld be surrounded with double quotations, while values should be surrounded with single quoataions.
 
-Here are some examples:
-question: average time of day a case is reported
-output: SELECT TIME '00:00' + INTERVAL '1 minute' * MEDIAN(EXTRACT(HOUR FROM "Reported_Date") * 60 + EXTRACT(MINUTE FROM "Reported_Date")) AS Average_Reported_Time FROM "MinneapolisCrimeRate";
-
+Here are some examples
 request: time of day when there is the highest case reported in each Precinct
-output: SELECT "Precinct" AS precinct, TIME '00:00' + INTERVAL '1 minute' * (EXTRACT(HOUR FROM "Reported_Date") * 60 + EXTRACT(MINUTE FROM "Reported_Date")) AS Time_Of_Highest_Case FROM "MinneapolisCrimeRate" WHERE "Case_Number" IN (SELECT MAX("Case_Number") FROM "MinneapolisCrimeRate" GROUP BY "Precinct");
+output: SELECT "Precinct" AS precinct, TO_CHAR(TIME '00:00' + INTERVAL '1 minute' * (EXTRACT(HOUR FROM "Reported_Date") * 60 + EXTRACT(MINUTE FROM "Reported_Date")), 'HH:MI') AS Time_Of_Highest_Case FROM "MinneapolisCrimeRate" WHERE "Case_Number" IN (SELECT MAX("Case_Number") FROM "MinneapolisCrimeRate" GROUP BY "Precinct");
 
 request: delete all rows from New York
 output: Query Not Supported
@@ -130,7 +127,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  const { question, uid } = req.body;
+  const { question } = req.body;
 
   if (!question) {
     return res.status(400).json({ message: 'No question in the request' });
@@ -142,6 +139,7 @@ export default async function handler(
 request: ${sanitizedQuestion}
 output:`;
 
+    // let sql = `SELECT "Precinct" AS precinct, TO_CHAR(TIME '00:00' + INTERVAL '1 minute' * (EXTRACT(HOUR FROM "Reported_Date") * 60 + EXTRACT(MINUTE FROM "Reported_Date")), 'HH:MI') AS Time_Of_Highest_Case FROM "MinneapolisCrimeRate" WHERE "Case_Number" IN (SELECT MAX("Case_Number") FROM "MinneapolisCrimeRate" GROUP BY "Precinct");`
     let sql = await openaiComplete(GPT_PROMPT);
     console.log(sql);
     // if (sql == 'Time Not Supported' || 
@@ -158,16 +156,16 @@ output:`;
     // let sql = `SELECT SUM("numAffected") AS "totalAffected" FROM "WarnNotice" WHERE "state" = 'CO' AND DATE_TRUNC('day', "noticeDate") >= DATE_TRUNC('month', NOW() - INTERVAL '2 months');`
     // let sql = `SELECT TO_CHAR(DATE_TRUNC('month', "noticeDate"), 'YYYY-MM') AS "month", SUM(CASE WHEN "state" = 'CO' THEN "numAffected" ELSE 0 END) AS "CO", SUM(CASE WHEN "state" = 'FL' THEN "numAffected" ELSE 0 END) AS "FL" FROM "WarnNotice" WHERE DATE_TRUNC('day', "noticeDate") >= DATE_TRUNC('month', NOW() - INTERVAL '3 months') GROUP BY "month";`
     let data: any = await prismaCli.$queryRaw(Prisma.raw(sql));
-
+    console.log(data)
     const serializedArray = data.map((obj: any) =>
     JSON.stringify(obj, (_, v) => (typeof v === 'bigint' ? v.toString() : v)),
     );
     res.status(200).json({ data: serializedArray, sql });
-    createQuery(question, sql, undefined)
+    // createQuery(question, sql, undefined)
 
   } catch (error) {
     console.log('error', error);
     res.status(400).json({ message: 'Server error, please try again later!' });
-    createQuery(question, undefined, error as string)
+    // createQuery(question, undefined, error as string)
   }
 }
