@@ -15,18 +15,18 @@ export default function Home() {
   const [error, setError] = useState<string>('');
   const [user, setUser] = useState<User | null>(null);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const user = await supabaseClient.auth.getUser();
-        setUser(user['data']['user']);
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchUser = async () => {
+  //     try {
+  //       const user = await supabaseClient.auth.getUser();
+  //       setUser(user['data']['user']);
+  //     } catch (error) {
+  //       console.error('Error fetching user:', error);
+  //     }
+  //   };
 
-    fetchUser();
-  }, []);
+  //   fetchUser();
+  // }, []);
 
   function setResponse(response: any) {
     let aggData = response['data'].map(JSON.parse);
@@ -39,7 +39,7 @@ export default function Home() {
       <Layout>
         <div className="grid grid-flow-col gap-3 p-3 m-3">
           <div className="col-span-3">
-            <div className="bg-blue-100 p-3">
+            <div className="bg-blue-100 p-3 max-w-[50%]">
               <SampleTable />
               {/* <VisualizeData data={chartData} /> */}
             </div>

@@ -6,26 +6,92 @@ import { makeChain } from '@/utils/makechain';
 import { prismaCli } from '@/prisma/prisma';
 import { Prisma } from '@prisma/client';
 import { createQuery } from '@/utils/prisma-client';
+import { Sql } from '@prisma/client/runtime';
 
 async function execSql(query: string) {
   const result = await prismaCli.$queryRaw`${query}`;
   return result;
 }
+// use SQL if size of tables needed is more than 300MB
+// LLM chain:
+// 1. determine which tables and how much memory the operation requires. If more than 100MB use Sql
+// 2. based on answer above, pull table schemas & construct prompt
+// 3. viz - convert the output data to chart acceptable format. If output data is too big generate script for conversion
+const POLICE_PROMPT=`Generate a single SQL query that fulfills a question.
+The SQL can only be reading and you should not generate any table alternation queries. Output "Query Not Supported" for any non-read requests.
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
-  const { question, uid } = req.body;
+These are the table schemas. All columns are text unless otherwise noted:
+MinneapolisCrimeRate:
+Address: address where the crime occured
+Precinct: Minnepolis precinct where the crime occured. Int
+Neighborhood: Neighborhood where the crime occured. Enum
+Ward: Minnepolis ward where the crime occured. Int
+Latitude: Latitude of the crime. Float
+Longitude: Longitude of the crime. Float
+Type: Offense type, an enum that can be Crime Offenses (NIBRS), Shots Fired Calls, Gunshot Wound Victims or Additional Crime Metrics
+Case_Number: ID of the case
+Case_NumberAlt: Alternative ID of the case, provide this ID only if asked
+Reported_Date: datetime of when the case was reported
+Occurred_Date: datetime of when the case occured
+NIBRS_Crime_Against: who the crime against, an enum that can be Property, Person, Society or Non NIBRS Data
+Offense_Category: offense category, an enum
+Offense: offense type, an enum
+Problem_Initial: initial problem when reported
+Problem_Final: occured problem on site
 
-  if (!question) {
-    return res.status(400).json({ message: 'No question in the request' });
-  }
-  // OpenAI recommends replacing newlines with spaces for best results
-  const sanitizedQuestion = question.trim().replaceAll('\n', ' ');
-  try {
-    const GPT_PROMPT = `
-    Generate a single SQL query that fulfills a request. 
+MinneapolisPoliceUseOfForce:
+ID: Id of the 
+CaseNumber: Case number, can be used to join with other tables
+ResponseDate: datetime of police reponse
+Problem: problem of the case, enum
+Is911Call: true if the case is reported by 911Call. Boolean
+PrimaryOffense: Code number of the offense
+SubjectInjury: true if the subject is injured. Boolean
+ForceReportNumber: number of times the police used force in this case. Int
+SubjectRole: role of the subject. Enum
+SubjectRoleNumber: role of the subject in number format. Int
+ForceType: type of force applied by officer. Enum
+ForceTypeAction: specific action force action applied by the officer. Enum
+Race: Race of the subject. Enum with values Black, White, Asian, Native American, Pacific Islander, Unknown, Other / Mixed Race, not recorded
+Sex: Sex of the subject. Enum with values Male, Female, not recorded, Unknown
+EventAge: Age of the subject. Int
+TypeOfResistance: type of resistance from the subject. Enum with values Tensed, Commission of Crime
+Precinct: Minnepolis precinct where the crime occured. Int
+Neighborhood: Neighborhood where the crime occured. Enum
+TotalCityCallsForYear: total calls received in the year in the city
+TotalPrecinctCallsForYear: total calls received in the year in the precinct
+TotalNeighborhoodCallsForYear: total calls received in the year in the Neighborhood, 
+Latitude: Latitude of the crime. Float
+Longitude: Longitude of the crime. Float
+
+Make sure the generated SQL query is valid before outputting it. Column names shuld be surrounded with double quotations, while values should be surrounded with single quoataions.
+
+Here are some examples:
+question: average time of day a case is reported
+output: SELECT TIME '00:00' + INTERVAL '1 minute' * MEDIAN(EXTRACT(HOUR FROM "Reported_Date") * 60 + EXTRACT(MINUTE FROM "Reported_Date")) AS Average_Reported_Time FROM "MinneapolisCrimeRate";
+
+request: time of day when there is the highest case reported in each Precinct
+output: SELECT "Precinct" AS precinct, TIME '00:00' + INTERVAL '1 minute' * (EXTRACT(HOUR FROM "Reported_Date") * 60 + EXTRACT(MINUTE FROM "Reported_Date")) AS Time_Of_Highest_Case FROM "MinneapolisCrimeRate" WHERE "Case_Number" IN (SELECT MAX("Case_Number") FROM "MinneapolisCrimeRate" GROUP BY "Precinct");
+
+request: delete all rows from New York
+output: Query Not Supported
+
+request: average number of cases in each neighborhood at each hour of the day
+output: SELECT "Neighborhood", EXTRACT(HOUR FROM "Reported_Date") AS Hour, AVG(COUNT("Case_Number")) OVER (PARTITION BY "Neighborhood", EXTRACT(HOUR FROM "Reported_Date")) AS Average_Cases FROM "MinneapolisCrimeRate" GROUP BY "Neighborhood", EXTRACT(HOUR FROM "Reported_Date");
+
+request: neighborhood with the highest number of cases involving the of force
+output: SELECT "Neighborhood" as neighborhood, COUNT(*) AS NumCasesInvolvingForce FROM "MinneapolisPoliceUseOfForce" GROUP BY neighborhood ORDER BY NumCasesInvolvingForce DESC;
+
+request: percentage of cases involving use of force in each Neighborhood
+output: SELECT m."Neighborhood" as neighborhood, COUNT(uof."ID") AS NumCasesInvolvingForce, COUNT(uof."ID") * 100.0 / COUNT(m."Case_Number") AS PercentageOfCasesInvolvingForce FROM "MinneapolisCrimeRate" m LEFT JOIN "MinneapolisPoliceUseOfForce" uof ON m."Case_Number" = uof."CaseNumber" GROUP BY m."Neighborhood" ORDER BY PercentageOfCasesInvolvingForce DESC;
+
+request: number of cases in each month and the number of cases that involved use of force in each month
+output: SELECT TO_CHAR(CAST(m."Occurred_Date" AS DATE), 'YYYY-MM') AS Month, COUNT(m."Case_Number") AS NumCases, COUNT(uof."ID") AS NumCasesInvolvingForce, COUNT(uof."ID") * 100.0 / COUNT(m."Case_Number") AS PercentageOfCasesInvolvingForce FROM "MinneapolisCrimeRate" m LEFT JOIN "MinneapolisPoliceUseOfForce" uof ON m."Case_Number" = uof."Case_Number" GROUP BY TO_CHAR(CAST(m."Occurred_Date" AS DATE), 'YYYY-MM') ORDER BY TO_CHAR(CAST(m."Occurred_Date" AS DATE), 'YYYY-MM');
+
+Remember to only output the SQL query or the "Query Not Supported" response. Make sure the SQL query is correct before outputting it. Do not output any other words.
+`
+
+const WARN_PROMPT=`Generate a single SQL query that fulfills a request. 
 The SQL can only be reading and you should not generate any table alternation queries. Output "Query Not Supported" for any non-read requests.
 
 These are the table schemas:
@@ -58,19 +124,35 @@ output: WITH yearly_layoffs AS (SELECT EXTRACT(YEAR FROM "layoffDate") AS dt_tim
 
 Here is an example of an incorrect output, because it violates the rule that window functions cannot be used directly inside aggregate functions: SELECT EXTRACT(YEAR FROM "layoffDate") AS time, SUM("numAffected") AS numLayoffs, SUM(LAG("numAffected") OVER (ORDER BY EXTRACT(YEAR FROM "layoffDate"))) AS previousNumLayoffs, CAST(((numLayoffs - previousNumLayoffs) / CAST(previousNumLayoffs AS float)) * 100 AS numeric(10, 1)) AS value FROM "WarnNotice" WHERE "layoffDate" >= (CURRENT_DATE - INTERVAL '5 years') GROUP BY EXTRACT(YEAR FROM "layoffDate") ORDER BY time;
 
-Remember to only output the SQL query or the "Query Not Supported" response. Make sure the SQL query is correct before outputting it. Do not output any other words.
+Remember to only output the SQL query or the "Query Not Supported" response. Make sure the SQL query is correct before outputting it. Do not output any other words.`
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
+  const { question, uid } = req.body;
+
+  if (!question) {
+    return res.status(400).json({ message: 'No question in the request' });
+  }
+  // OpenAI recommends replacing newlines with spaces for best results
+  const sanitizedQuestion = question.trim().replaceAll('\n', ' ');
+  try {
+    const GPT_PROMPT = `${POLICE_PROMPT}
 request: ${sanitizedQuestion}
 output:`;
 
     let sql = await openaiComplete(GPT_PROMPT);
     console.log(sql);
-    if (sql == 'Time Not Supported' || sql == 'Query Not Supported') {
+    // if (sql == 'Time Not Supported' || 
+    if(sql == 'Query Not Supported') {
       createQuery(question, sql, undefined)
       return res
         .status(400)
         .json({
           message:
-            'We only support queries for the past 12 months, please upgrade to access historical data.',
+            // 'We only support queries for the past 12 months, please upgrade to access historical data.',
+            'We only support read operations'
         });
     }
     // let sql = `SELECT SUM("numAffected") AS "totalAffected" FROM "WarnNotice" WHERE "state" = 'CO' AND DATE_TRUNC('day', "noticeDate") >= DATE_TRUNC('month', NOW() - INTERVAL '2 months');`

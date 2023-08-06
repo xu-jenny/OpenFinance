@@ -18,27 +18,84 @@ model WarnNotice {
   state       State
 }
 
-model Question {
-  id           Int      @id @default(autoincrement())
-  createdAt    DateTime @default(now())
-  question     String
-  llm_response String?
-  error        String?
-  // uid          String   @db.Uuid
-  // User         User     @relation(fields: [uid], references: [id])
-}
-
 model User {
   id        String   @id @db.Uuid
   createdAt DateTime @default(now())
   email     String
-  // Question  Question[]
 }
 
 model TableMetaData {
   id           Int    @id @default(autoincrement())
   tableName    String
   promptSchema String
+}
+
+model MinneapolisCrimeRate {
+  X                   Float
+  Y                   Float
+  Type                String
+  Case_Number         String
+  Case_NumberAlt      String?
+  Reported_Date       DateTime  @db.Timestamptz(6)
+  Occurred_Date       DateTime? @db.Timestamp(6)
+  NIBRS_Crime_Against String
+  NIBRS_Group         String
+  NIBRS_Code          String
+  Offense_Category    String
+  Offense             String
+  Problem_Initial     String?
+  Problem_Final       String?
+  Address             String?
+  Precinct            Int?      @db.SmallInt
+  Neighborhood        String?
+  Ward                Int?      @db.SmallInt
+  Latitude            Float
+  Longitude           Float
+  wgsXAnon            String
+  wgsYAnon            String
+  Crime_Count         Int
+  OBJECTID            Int       @id
+}
+
+model MinneapolisPoliceUseOfForce {
+  X                             String
+  Y                             String
+  ID                            Int
+  CaseNumber                    String
+  ResponseDate                  DateTime? @db.Timestamptz(6)
+  Problem                       String?
+  Is911Call                     Boolean?
+  PrimaryOffense                String?
+  SubjectInjury                 Boolean?
+  ForceReportNumber             String
+  SubjectRole                   String?
+  SubjectRoleNumber             String?
+  ForceType                     String?
+  ForceTypeAction               String
+  Race                          String?
+  Sex                           String?
+  EventAge                      String?
+  TypeOfResistance              String?
+  Precinct                      String?
+  Neighborhood                  String?
+  TotalCityCallsForYear         Int
+  TotalPrecinctCallsForYear     String?
+  TotalNeighborhoodCallsForYear Int
+  CenterGBSID                   String
+  Latitude                      Float
+  Longitude                     Float
+  CenterX                       String
+  CenterY                       String
+  DateAdded                     DateTime  @db.Timestamptz(6)
+  OBJECTID                      Int       @id
+}
+
+model Question {
+  id           Int      @id @default(autoincrement())
+  createdAt    DateTime @default(now())
+  question     String
+  llm_response String?
+  error        String?
 }
 
 enum State {
@@ -53,3 +110,17 @@ enum State {
   MI
   MD
 }
+
+// enum ResistanceType {
+//   fled_on_foot
+//   assaulted_officer
+//   verbal_noncompliance
+//   unspecified
+//   other
+//   fled_in_vehicle
+//   X
+//   commission_of_crime
+//   tensed
+//   assaulted_police_horse
+//   assaulted_police_k9
+// }

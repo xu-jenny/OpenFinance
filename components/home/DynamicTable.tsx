@@ -2,7 +2,12 @@ import { useMemo } from 'react';
 import { Table } from '../common/Table';
 import { createColumnHelper } from '@tanstack/react-table';
 
-const DynamicTable = ({ data }: { data: any }) => {
+type Props = {
+  data: any;
+  paginate?: boolean;
+};
+
+const DynamicTable = ({ data, paginate = true }: Props) => {
   const columnHelper = createColumnHelper<any>();
   const columns = useMemo(() => {
     if (data.length > 0) {
@@ -17,7 +22,7 @@ const DynamicTable = ({ data }: { data: any }) => {
 
   return (
     <>
-      <Table data={data} columns={columns} paginate={true} />
+      <Table data={data} columns={columns} paginate={paginate} />
     </>
   );
 };
