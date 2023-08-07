@@ -85,7 +85,7 @@ output: SELECT m."Neighborhood" as neighborhood, COUNT(uof."ID") AS NumCasesInvo
 request: number of cases in each month and the number of cases that involved use of force in each month
 output: SELECT TO_CHAR(CAST(m."Occurred_Date" AS DATE), 'YYYY-MM') AS Month, COUNT(m."Case_Number") AS NumCases, COUNT(uof."ID") AS NumCasesInvolvingForce, COUNT(uof."ID") * 100.0 / COUNT(m."Case_Number") AS PercentageOfCasesInvolvingForce FROM "MinneapolisCrimeRate" m LEFT JOIN "MinneapolisPoliceUseOfForce" uof ON m."Case_Number" = uof."Case_Number" GROUP BY TO_CHAR(CAST(m."Occurred_Date" AS DATE), 'YYYY-MM') ORDER BY TO_CHAR(CAST(m."Occurred_Date" AS DATE), 'YYYY-MM');
 
-Remember to only output the SQL query or the "Query Not Supported" response. Make sure the SQL query is correct before outputting it. Do not output any other words.
+Remember to only output the SQL query or the "Query Not Supported" response. Make sure the SQL query is correct before outputting it. Do not limit the output wiht a LIMIT clause unless the question asked for it. Do not output any other words.
 `
 
 const WARN_PROMPT=`Generate a single SQL query that fulfills a request. 

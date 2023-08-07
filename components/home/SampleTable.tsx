@@ -27,17 +27,16 @@ const SampleTable = () => {
       }),
     })
       .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-        setData(data);
-        console.log(Object.keys(data[0]));
-        const cols = Object.keys(data[0]).map((field) => ({
-          Header: field,
-          accessor: field,
-        }));
-        console.log(cols);
-        // @ts-ignore
-        setColumns(cols);
+      .then((res) => {
+        if (res != null && 'data' in res && res.data.length > 0) {
+          setData(res.data);
+          const cols = Object.keys(res.data[0]).map((field) => ({
+            Header: field,
+            accessor: field,
+          }));
+          // @ts-ignore
+          setColumns(cols);
+        }
       });
   }, [tableName]);
 

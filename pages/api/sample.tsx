@@ -13,6 +13,7 @@ export default async function handle(
       break;
     case 'CrimeRate':
       data = await prismaCli.minneapolisCrimeRate.findMany({ take: 5 });
+      console.log(data);
     case 'UseOfForce':
       data = await prismaCli.minneapolisPoliceUseOfForce.findMany({ take: 5 });
     default:
@@ -21,5 +22,5 @@ export default async function handle(
   //   const serializedOutput = JSON.stringify(data, (key, value) => {
   //     return typeof value === 'bigint' ? Number(value) : value;
   //   });
-  res.json(data);
+  res.status(200).send({ data });
 }
