@@ -5,16 +5,18 @@ export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  const { tableName } = req.body;
+  const name = req.query.name as string;
+  // const { tableName } = req.body;
+  console.log(name);
   let data;
-  switch (tableName) {
+  switch (name) {
     case 'WARN':
       data = await prismaCli.warnNotice.findMany({ take: 5 });
       break;
-    case 'CrimeRate':
+    case 'MN_CRIME':
       data = await prismaCli.minneapolisCrimeRate.findMany({ take: 5 });
       console.log(data);
-    case 'UseOfForce':
+    case 'MN_CRIME_FORCE':
       data = await prismaCli.minneapolisPoliceUseOfForce.findMany({ take: 5 });
     default:
       break;

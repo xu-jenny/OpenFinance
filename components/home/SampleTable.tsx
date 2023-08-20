@@ -9,11 +9,14 @@ import { Table } from '@tremor/react';
 import { prismaCli } from '@/prisma/prisma';
 import DynamicTable from './DynamicTable';
 
-type TableName = 'WARN' | 'CrimeRate' | 'UseOfForce';
+export type TableName = 'WARN' | 'MN_CRIME' | 'MN_CRIME_FORCE';
 
-const SampleTable = () => {
+type Props = {
+  tableName: TableName;
+};
+
+const SampleTable = ({ tableName }: Props) => {
   const [data, setData] = useState<any[]>([]);
-  const [tableName, setTableName] = useState<TableName>('CrimeRate');
   const [columns, setColumns] = useState([]);
 
   useEffect(() => {

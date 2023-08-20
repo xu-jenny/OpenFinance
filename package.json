@@ -19,6 +19,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@chatscope/chat-ui-kit-react": "^1.10.1",
     "@microsoft/fetch-event-source": "^2.0.1",
     "@prisma/client": "4.15.0",
     "@supabase/auth-ui-react": "^0.4.2",

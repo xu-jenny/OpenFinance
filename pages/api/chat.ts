@@ -64,7 +64,7 @@ TotalNeighborhoodCallsForYear: total calls received in the year in the Neighborh
 Latitude: Latitude of the crime. Float
 Longitude: Longitude of the crime. Float
 
-Make sure the generated SQL query is valid before outputting it. Column names shuld be surrounded with double quotations, while values should be surrounded with single quoataions.
+Make sure the generated SQL query is valid before outputting it. Column names should be surrounded with double quotations, while values should be surrounded with single quoataions.
 
 Here are some examples
 request: time of day when there is the highest case reported in each Precinct
@@ -99,7 +99,7 @@ layoffDate (DateTime): the date the layoff will actually happen
 numAffected (Int): the number of employees affected
 state (String): the state in which the layoff will happen. State is represented by its 2 letter abbreviation, such as NY, NJ, CA, etc.)
 
-Make sure the generated SQL query is valid before outputting it. Column names shuld be surrounded with double quotations, while values should be surrounded with single quoataions.
+Make sure the generated SQL query is valid before outputting it. Column names should be surrounded with double quotations, while values should be surrounded with single quoataions.
 
 Here are some examples:
 request: total number of employees laid off in each state in the past 6 months

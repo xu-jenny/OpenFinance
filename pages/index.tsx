@@ -40,7 +40,7 @@ export default function Home() {
         <div className="grid grid-cols-2 gap-4 p-3 m-3">
           <div className="flex flex-col">
             <div className="bg-blue-100 p-3">
-              <SampleTable />
+              <SampleTable tableName="MN_CRIME" />
             </div>
             {/* <VisualizeData data={chartData} /> */}
             {sql.length > 0 && (
