@@ -1,4 +1,5 @@
 import Input from '@/components/common/Input';
+import LLMTextArea from '@/components/common/LLMTextArea';
 import SearchBar from '@/components/common/Searchbar';
 import { post } from '@/components/common/util';
 import DynamicTable from '@/components/home/DynamicTable';
@@ -19,8 +20,13 @@ const SampleTables = ({ tables }: { tables: any[] }) => {
 };
 
 export default function Search() {
-  const [tableNames, setTableNames] = useState<TableName[]>([]);
+  const [tableNames, setTableNames] = useState<TableName[]>([
+    'WARN',
+    'MN_CRIME',
+  ]);
   const [tables, setTables] = useState<any[]>([]);
+  const [llmResponse, setLLMResponse] = useState(null);
+  const [error, setError] = useState('');
 
   const onInputSubmit = async (message: String) => {
     let response = await post('/api/search', { question: message });
@@ -264,11 +270,22 @@ export default function Search() {
   return (
     <Layout>
       <h2>Search for your dataset</h2>
-      <SearchBar />
-      <Input onSubmit={onInputSubmit} />
+      <SearchBar onSubmit={onInputSubmit} />
 
       <div>
+        <h3>Do these tables solve your request?</h3>
         <SampleTables tables={tables} />
+        <button>Yes, I want to analyze further</button>
+      </div>
+
+      <div>
+        <LLMTextArea
+          setResponse={setLLMResponse}
+          setError={setError}
+          url={`/api/analyze?tables=${encodeURIComponent(
+            tableNames.join(','),
+          )}`}
+        />
       </div>
     </Layout>
   );

@@ -1,0 +1,15 @@
+Generate a single SQL query that fulfills a request. 
+The SQL can only be reading and you should not generate any table alternation queries. Output "Query Not Supported" for any non-read requests.
+
+These are the table schemas:
+{{tables}}
+
+Make sure the generated SQL query is valid before outputting it. Column names should be surrounded with double quotations, while values should be surrounded with single quoataions.
+Examples:
+{{examples}}
+request: delete all rows from New York
+output: Query Not Supported
+
+Remember to only output the SQL query or the "Query Not Supported" response. Make sure the SQL query is correct before outputting it. Do not limit the output wiht a LIMIT clause unless the question asked for it. Do not output any other words.
+request:{{question}}
+

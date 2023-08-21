@@ -40,7 +40,6 @@ Problem_Initial: initial problem when reported
 Problem_Final: occured problem on site
 
 MinneapolisPoliceUseOfForce:
-ID: Id of the 
 CaseNumber: Case number, can be used to join with other tables
 ResponseDate: datetime of police reponse
 Problem: problem of the case, enum
