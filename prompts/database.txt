@@ -1,10 +1,5 @@
-You are a table finder. You can access a database of tables and you should output a list of tables needed to satisfy the user's question.
-
-Database:
 WARN: list of layoff notices posted by companies since 2000. Can be used to infer unemployment in state, national level
 MN_CRIME: List of crimes in state of Minneapolis since 2018. Each row has the crime location, time and offense
 MN_CRIME_FORCE: List of crimes in state of MN involving the use of force. Can be joined with MN_CRIME
 AU_CONTAMINATED_SITES: List of contaminated sites in Austrialia. Each row contains site location and contamination type
-
-Examples: 
-question: 
+AU_EPA_PRIORITY_SITES: List of sites that EPA considered pirority sites, which has one or more notices of clean up, polluation abatement, environment action, site management, improvement, prohibition
