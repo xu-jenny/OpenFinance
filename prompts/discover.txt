@@ -6,5 +6,7 @@ Database:
 Examples: 
 {{examples}}
 
+Do not output any additional words besides the array response. Return "[]" if no table can satisfy the request
+
 question: {{question}}
 answer:

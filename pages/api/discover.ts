@@ -22,12 +22,81 @@ function constructPrompt(question: string){
     return prompt
 }
 
-async function handleLLMResponse(question: string, response: string){
+export enum TableNames {
+    AU_CONTAMINATED_SITES = 'AU_CONTAMINATED_SITES',
+    AU_EPA_PRIORITY_SITES = 'AU_EPA_PRIORITY_SITES'
+  }
+
+function handleLLMResponse(question: string, response: string){
     if(response == 'Query Not Supported') {
         createQuery(question, response, "UNDEFINED_DISCOVER_QUERY")
         throw new IllegalSQLError()
     }
-    createQuery(question, response, undefined)
+    
+    const identifiers = response.slice(1, -1).split(', ');
+    
+    const validElements: TableNames[] = [];
+    const invalidElements: string[] = [];
+    
+    for (const identifier of identifiers) {
+        //@ts-ignore
+        const castedIdentifier = TableNames[identifier] as TableNames;
+        if (castedIdentifier !== undefined) {
+            validElements.push(castedIdentifier);
+        } else {
+            invalidElements.push(identifier);
+        }
+    }
+
+    if(invalidElements.length > 0){
+        createQuery(question, response, `INVALID_ELEMENTS: ${invalidElements}`)
+    } else {
+        createQuery(question, response, undefined)
+    }
+    
+    return validElements
+}
+
+
+type TableMetadata = { [key: string]: string };
+
+function parseTableInfo(text: string): TableMetadata {
+  const lines = text.split('\n');
+  const metadata: TableMetadata = {};
+
+  let currentTableName = '';
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    let index = trimmedLine.indexOf(':')
+    if (index != -1) {
+      currentTableName = trimmedLine.substring(0, index).trim();
+      metadata[currentTableName] = trimmedLine.substring(index+1).trim();
+    }
+  }
+
+  return metadata;
+}
+
+function getTableMetadata(tableNames: TableNames[], filePath: string): TableMetadata {
+  const fileContent = fs.readFileSync(filePath, 'utf-8');
+  const parsedTableInfo = parseTableInfo(fileContent);
+
+  const metadata: TableMetadata = {};
+
+  for (const tableName of tableNames) {
+    if (parsedTableInfo[tableName]) {
+      metadata[tableName] = parsedTableInfo[tableName];
+    }
+  }
+
+  return metadata;
+}
+
+function constructAPIResponse(tableNames: TableNames[]){
+    const filePath = path.join(process.cwd(), 'prompts', 'database.txt');
+    let metadata = getTableMetadata(tableNames, filePath)
+    console.log(metadata)
+    return JSON.stringify(metadata)
 }
 
 export default async function handler(
@@ -42,16 +111,14 @@ export default async function handler(
     }
 
     const prompt = constructPrompt(message)
-    console.log(prompt)
-    return res.status(200).json({ prompt: prompt })
-    // try {
-    //     let response = await openaiComplete(prompt);
-    //     console.log(response)
-    //     const serializedArray = await handleLLMResponse(message, response)
-    //     res.status(200).json({ data: serializedArray });
-    // } catch (error) {
-    //     createQuery(message, undefined, error as string)
-    //     console.log('error', error);
-    //     res.status(400).json({ message: 'Server error, please try again later!' });
-    // }
+    try {
+        let response = await openaiComplete(prompt);
+        const tableNames : TableNames[] = handleLLMResponse(message, response)
+        let metadata = constructAPIResponse(tableNames)
+        res.status(200).json({ tables: tableNames, metadata});
+    } catch (error) {
+        createQuery(message, undefined, error as string)
+        console.log('error', error);
+        res.status(400).json({ message: 'Server error, please try again later!' });
+    }
   }
