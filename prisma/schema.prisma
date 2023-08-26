@@ -111,17 +111,3 @@ enum State {
   MI
   MD
 }
-
-// enum ResistanceType {
-//   fled_on_foot
-//   assaulted_officer
-//   verbal_noncompliance
-//   unspecified
-//   other
-//   fled_in_vehicle
-//   X
-//   commission_of_crime
-//   tensed
-//   assaulted_police_horse
-//   assaulted_police_k9
-// }
