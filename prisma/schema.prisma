@@ -25,9 +25,10 @@ model User {
 }
 
 model TableMetaData {
-  id           Int    @id @default(autoincrement())
-  tableName    String
-  promptSchema String
+  id                  Int    @id @default(autoincrement())
+  tableName           String
+  downloadInstruction String
+  description         String
 }
 
 model MinneapolisCrimeRate {
